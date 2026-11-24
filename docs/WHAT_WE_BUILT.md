@@ -4,6 +4,18 @@ A running diary of what's in this repo, written so anyone (teammates, judges, fu
 
 ---
 
+## 24 Nov 2026: Cleaned up. Everything for today is in `submission/` (Omkar)
+
+**In simple terms:** we moved the files we need for tonight's submission into **one folder, `submission/`**, and removed the working files (drafts, design sources, old copies) from this branch.
+- `submission/ContinuED_Track4.pptx`: **the PPT** (8 slides)
+- `submission/video_script.md`: the video script (one presenter: Venkat, about 4½ min)
+- `submission/mockups/`: 4 screen pictures for the video
+- `submission/sources.md`: where every number in the PPT comes from
+
+The older entries below mention paths like `docs/pitch/...`. Those working files were removed from the branch, but they're still in the git history if we ever need them.
+
+---
+
 ## 24 Nov 2026: Video script + deck fixes (Omkar, branch `omkar/stage0-deliverables`)
 
 **What we made:** the video script, `docs/pitch/video/video_script.md`.

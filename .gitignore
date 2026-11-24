@@ -27,3 +27,7 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# Local-only working files (not needed in git)
+docs/pitch/
+~$*
