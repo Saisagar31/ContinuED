@@ -7,7 +7,7 @@ A running diary of what's in this repo, written so anyone (teammates, judges, fu
 ## 24 Nov 2026: Cover slide filled in (Omkar)
 
 **In simple terms:** the PPT's first slide now shows our details.
-- **Filled in:** team name **ContinuED**, college **Ramaiah Institute of Technology**, and full names with USNs: Omkar Tonne (1MS24CI086), Sai Sagar (1MS24CI104), Venkat Vaishnav (1MS24CI139), Ramith Nayak (1MS24CI098).
+- **Filled in:** team name **ContinuED**, college **Ramaiah Institute of Technology**, and full names with USNs: **Sai Sagar, team lead** (1MS24CI104), Omkar Tonne (1MS24CI086), Venkat Vaishnav (1MS24CI139), Ramith Nayak (1MS24CI098).
 - **The footer** on slides 2–8 now says "Team Name: ContinuED".
 - **Still blank:** the **Team ID**, on the cover and in the footer. Add it once we have it.
 - **Checked:** slides 1, 2 and 4 were rendered in PowerPoint and looked at. Nothing is cut off, and the deck still has 8 slides.
