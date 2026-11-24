@@ -21,7 +21,7 @@ LEFT column (bullets):
 - **The problem:** the child arrives at a new school, often in a new state and language, with no record of what they can do.
 - **Who it affects:** children of migrant families. 39.2% of the 19.64 million people who migrated into Maharashtra in 2001–10 were children.
 - **Why it matters:** about 80% of temporary migrant children in seven Indian cities lacked access to education near work sites.
-- **Weak foundations:** only 23.4% of Std III children can read a Std II text; 33.7% can do subtraction (ASER 2024).
+- **Weak foundations:** only 23.4% of rural Std III children can read a Std II text; 33.7% can do subtraction (ASER 2024).
 - **The result:** the new teacher guesses or restarts from zero → wrong level → the child falls further behind.
 RIGHT column, box titled "Existing solutions & their gaps":
 - **Transfer certificate:** by law, admission can't wait for it (RTE Act, Sec. 5), so a child can be admitted with no learning record at all.
@@ -40,7 +40,7 @@ LEFT, "Key features":
 - Finds the root skill gap + a "Start Here Tomorrow" 15-minute plan
 - Oral check in the child's mother tongue (voice)
 RIGHT, "User flow" (5 small boxes with arrows, or a numbered list): ① Check → ② Seal → ③ Carry (paper/phone) → ④ Scan (offline) → ⑤ Teach
-BOTTOM box, "What we'll build in 24 hours (MVP)": create + seal + scan + root gap + plan in 3 languages, fully offline. Hack day adds: camera scanner, ElevenLabs voice, AWS dashboard.
+BOTTOM box, "What we'll build in 24 hours (MVP)": create + seal + scan + root gap + plan in 3 languages, with no server or internet once opened. Hack day adds: camera scanner, ElevenLabs voice, AWS dashboard.
 
 ---
 ## SLIDE 4: Tech Stack
@@ -57,7 +57,7 @@ TABLE (3 columns: Layer | Tool | Why we picked it):
 
 ---
 ## SLIDE 5: Process Flow / Architecture
-COPY slide 5 exactly from g:\whackiest hackathon\ContinuED\docs\pitch\ContinuED_slide5_filled.pptx (image + subtitle). Don't change it.
+COPY slide 5 exactly from docs/pitch/OLD_slide5_only_NOT_the_full_deck.pptx (formerly ContinuED_slide5_filled.pptx) (image + subtitle). Don't change it.
 
 ---
 ## SLIDE 6: Novelty / Innovation

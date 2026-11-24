@@ -21,7 +21,8 @@ Paste this into **slide 5** of the official template.
 ## Block labels (already in the image)
 | Block | Tech | Status |
 |---|---|---|
-| Create and Scan screens | React + TypeScript + Tailwind CSS (offline web app / PWA) | MVP |
+| Create and Scan screens | React + TypeScript + Tailwind CSS (runs on the phone, no server) | MVP |
+| Install for airplane mode | Progressive Web App (service worker) | Planned |
 | Capsule codec | lz-string compression + Web Crypto HMAC-SHA256 seal | MVP |
 | Skill graph + bottleneck engine | 8 foundational skills with prerequisites | MVP |
 | QR generator | qrcode.react | MVP |
