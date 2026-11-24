@@ -4,6 +4,29 @@ A running diary of what's in this repo, written so anyone (teammates, judges, fu
 
 ---
 
+## 24 Nov 2026: Full 8-slide pitch deck (Omkar, branch `omkar/stage0-deliverables`)
+
+**What we made:** the complete deck in the official template: `docs/pitch/deck/ContinuED_Track4.pptx`. There are exactly 8 slides and no extras.
+- **Slides:** cover, Problem, Solution, Tech Stack, Architecture, Novelty (comparison table), Impact & Feasibility, Business Model.
+- **Previews:** images of each slide are in `docs/pitch/deck/render/`.
+- **Slide text:** all of it is in `docs/pitch/deck/slide_content.md`.
+
+**Where the numbers come from:** every statistic on the slides comes from a source we actually opened. They're listed with exact quotes and links in `docs/pitch/research/verified_facts.md`. The two headline stats were checked twice:
+- UNESCO GEM 2019: ~80% of temporary migrant children in 7 cities had no school near work sites.
+- ASER 2024: 23.4% of Std III children can read a Std II text, and 33.7% can do subtraction.
+
+We dropped the popular "10.7 million children" figure because nobody could verify it.
+
+**Still to do before submitting:**
+- Fill the `[FILL]` boxes on the cover: team name, college, Team ID, USNs.
+- Fill the footer "Team Name / Team ID" (on every slide).
+- Rename the file to `TeamName_Track4`.
+- If the deck is moved to Google Slides, check the ✓/✗ marks and the Marathi/Kannada words.
+
+**How it was checked:** every slide was rendered in PowerPoint and looked at. Nothing is cut off or overlapping, and there are exactly 8 slides.
+
+---
+
 ## 24 Nov 2026: Stage 0 pitch material (Omkar, branch `omkar/stage0-deliverables`)
 
 **What we made**
