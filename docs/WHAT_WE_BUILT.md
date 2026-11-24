@@ -4,6 +4,16 @@ A running diary of what's in this repo, written so anyone (teammates, judges, fu
 
 ---
 
+## 24 Nov 2026: Cover slide filled in (Omkar)
+
+**In simple terms:** the PPT's first slide now shows our details.
+- **Filled in:** team name **ContinuED**, college **Ramaiah Institute of Technology**, and the USNs (Omkar 86, Saisagar 104, Venkat 139, Ramith 98).
+- **The footer** on slides 2–8 now says "Team Name: ContinuED".
+- **Still blank:** the **Team ID**, on the cover and in the footer. Add it once we have it.
+- **Checked:** slides 1, 2 and 4 were rendered in PowerPoint and looked at. Nothing is cut off, and the deck still has 8 slides.
+
+---
+
 ## 24 Nov 2026: Cleaned up. Everything for today is in `submission/` (Omkar)
 
 **In simple terms:** we moved the files we need for tonight's submission into **one folder, `submission/`**, and removed the working files (drafts, design sources, old copies) from this branch.
