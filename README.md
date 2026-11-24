@@ -40,4 +40,4 @@ npm run dev
 ## Team
 Omkar · Saisagar · Venkat · Ramith
 
-For roles, file ownership, the timeline and the agent prompts, see **[docs/ContinuED_TEAM_PLAN.md](docs/ContinuED_TEAM_PLAN.md)**.
+
