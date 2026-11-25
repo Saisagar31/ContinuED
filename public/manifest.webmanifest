@@ -1,0 +1,9 @@
+{
+  "name": "ContinuED",
+  "short_name": "ContinuED",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f5ef",
+  "theme_color": "#1f5f4a",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

@@ -1,46 +1,85 @@
-// Owner: Omkar. Skeleton shell — full wiring comes in task O7 (prompt P-O7).
-import { useState } from 'react';
-import { APP_NAME } from './config.ts';
-import { LOCALES } from './locales/index.ts';
-import type { LangCode } from './types/language.ts';
-import { CreateTab } from './components/CreateTab.tsx';
-import { ScanTab } from './components/ScanTab.tsx';
+import { useEffect, useRef } from 'react';
+import { go, useApp, useRoute } from './app/context';
+import { LANG_NAMES, packState } from './content/i18n';
+import { LANGS, type LangCode } from './domain/types';
+import { SignIn } from './screens/SignIn';
+import { Roster } from './screens/Roster';
+import { LearnerDetail } from './screens/LearnerDetail';
+import { Assess } from './screens/Assess';
+import { Review } from './screens/Review';
+import { TransferSlip } from './screens/TransferSlip';
+import { Receive } from './screens/Receive';
+import { PlanScreen } from './screens/PlanScreen';
+import { Groups } from './screens/Groups';
+import { Dashboard } from './screens/Dashboard';
 
-type Tab = 'create' | 'scan';
+const NAV = [
+  { path: '', label: 'Learners', icon: '👥' },
+  { path: 'receive', label: 'Receive', icon: '⇩' },
+  { path: 'groups', label: 'Groups', icon: '◫' },
+  { path: 'dashboard', label: 'Trends', icon: '▤' },
+];
 
-export default function App() {
-  const [tab, setTab] = useState<Tab>('create');
-  const lang: LangCode = 'en';
-  const locale = LOCALES[lang];
+export function App() {
+  const { ws, setWs, uiLang, setUiLang, online } = useApp();
+  const route = useRoute();
+  const main = useRef<HTMLElement>(null);
+
+  // Move focus to the main region on navigation for screen-reader users.
+  useEffect(() => {
+    main.current?.focus();
+  }, [route.join('/')]);
+
+  if (!ws) return <SignIn />;
+
+  const [head, a] = route;
+  let screen;
+  switch (head) {
+    case 'learner': screen = <LearnerDetail id={a} />; break;
+    case 'assess': screen = <Assess sessionId={a} />; break;
+    case 'review': screen = <Review sessionId={a} />; break;
+    case 'transfer': screen = <TransferSlip sessionId={a} />; break;
+    case 'receive': screen = <Receive />; break;
+    case 'plan': screen = <PlanScreen tid={a} />; break;
+    case 'groups': screen = <Groups />; break;
+    case 'dashboard': screen = <Dashboard />; break;
+    default: screen = <Roster />;
+  }
+  const active = NAV.find((n) => n.path === (head ?? ''))?.path ?? (head === 'plan' ? 'receive' : '');
 
   return (
-    <div className="mx-auto max-w-xl px-4 py-6">
-      <header className="mb-4">
-        <h1 className="text-2xl font-bold text-brand">{APP_NAME}</h1>
-        <p className="text-sm text-muted">Work in progress — core MVP by 26 Nov.</p>
+    <div className="shell">
+      <header className="topbar no-print">
+        <a className="brand" href="#/">ContinuED</a>
+        <label className="lang-select">
+          <span className="sr-only">Interface language</span>
+          <select value={uiLang} onChange={(e) => setUiLang(e.target.value as LangCode)} aria-label="Interface language">
+            {LANGS.map((l) => (
+              <option key={l} value={l}>{LANG_NAMES[l].native}</option>
+            ))}
+          </select>
+        </label>
+        <button className="link" onClick={() => { setWs(null); go('/'); }} aria-label={`Sign out ${ws.displayName}`}>
+          {ws.displayName} · Switch
+        </button>
       </header>
-
-      <nav className="mb-4 flex gap-2">
-        {(['create', 'scan'] as Tab[]).map((id) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setTab(id)}
-            className={
-              'rounded-md px-3 py-2 text-sm font-medium ' +
-              (tab === id ? 'bg-brand text-white' : 'border border-muted/40 text-muted')
-            }
-          >
-            {id === 'create' ? locale.ui.tabCreate : locale.ui.tabScan}
-          </button>
+      {!online && <div className="offline-bar no-print" role="status">Offline — work is saved on this phone</div>}
+      {packState(uiLang) !== 'complete' && (
+        <div className="draft-bar no-print" role="note">
+          {packState(uiLang) === 'draft'
+            ? `${LANG_NAMES[uiLang].english}: partial unreviewed draft — other text in English (review pending, task 09)`
+            : `${LANG_NAMES[uiLang].english} interface not yet available — showing English (task 09)`}
+        </div>
+      )}
+      <main ref={main} tabIndex={-1} className="main">{screen}</main>
+      <nav className="tabbar no-print" aria-label="Main">
+        {NAV.map((n) => (
+          <a key={n.path} href={`#/${n.path}`} aria-current={active === n.path ? 'page' : undefined}>
+            <span aria-hidden="true">{n.icon}</span>
+            {n.label}
+          </a>
         ))}
       </nav>
-
-      {tab === 'create' ? (
-        <CreateTab lang={lang} locale={locale} demo={null} onOpenInScan={() => setTab('scan')} />
-      ) : (
-        <ScanTab lang={lang} locale={locale} initialCode={null} />
-      )}
     </div>
   );
 }
