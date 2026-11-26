@@ -17,7 +17,7 @@ Owner: **Ramith**. This page says what content exists, what is still a draft, an
 
 ## What the automated checks already prove (CI)
 
-- All 7 packs have every interface key (221), all 8 skills, both activities, all three rubric descriptors and all 23 question templates. Every string is non-empty and keeps the English `{placeholders}`.
+- All 7 packs have every interface key (231), all 8 skills, both activities, all three rubric descriptors and all 23 question templates. Every string is non-empty and keeps the English `{placeholders}`.
 - Native script: every non-English string is in its own script. No stray Latin, apart from `ContinuED`, `QR`, `PIN`, `ID`, `CED` and `https`, and no characters from another Indian script.
 - All **49 origin/interface language combinations** render every skill ID and status. Each one has an oral check in the origin language.
 - Every numeracy variant (more than 1,000 checked) meets its constraint, such as no carrying or borrowing required. The expected answer is recomputed independently from what the learner sees.
