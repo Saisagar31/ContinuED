@@ -4,6 +4,22 @@ A running diary of what's in this repo, written so anyone (teammates, judges, fu
 
 ---
 
+## 26 Nov 2026: Audio pipeline and offline audio packs (Omkar, task 10 + task 05 tooling, branch `omkar/10-audio-pipeline`)
+
+**In simple terms:** the tools that turn approved lesson text into ElevenLabs voice clips, and the phone code that downloads those clips safely for offline use.
+- **Build tool (`scripts/audio/`):** lists every distinct spoken sentence per language, and gives the same sentence in the same voice one recording only.
+  - `--dry-run` counts clips, characters and estimated credits without calling anyone.
+  - `--sample` makes one clip per language and records its size and cost (task 05).
+  - A real run retries busy errors, stops at once on a bad key or empty account, respects a `--budget`, and keeps a log, so a stopped run can pick up where it left off.
+  - It writes the MP3s plus a checked list of files (manifest).
+- **Review (`scripts/audio/review.ts`):** a person marks clips approved or rejected after listening. If the text later changes, the verdict resets.
+- **Phone side (`src/audio/`):** downloads a whole language pack, checks every file's fingerprint, and switches over only when everything is correct. If the download breaks, the file is wrong or the phone is full, the old pack keeps working. Playback order: reviewed clip, then the phone's own voice, then text only.
+
+**Checked:** 26 new tests (78 total), typecheck and build pass. With no API key, nothing calls ElevenLabs.
+**Not checked:** real ElevenLabs calls, real phones, the real browser Cache API. Venkat's screens are not wired up yet.
+
+---
+
 ## 26 Nov 2026: Foundation: shared contracts, API skeleton, test fixtures, CI (Omkar, task 02, branch `omkar/02-foundation`)
 
 **In simple terms:** we set up the ground rules and safety checks so 4 people can build at once without breaking each other's work.
