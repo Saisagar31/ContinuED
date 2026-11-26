@@ -17,7 +17,7 @@ Owner: **Ramith**. This page says what content exists, what is still a draft, an
 
 ## What the automated checks already prove (CI)
 
-- All 7 packs have every interface key (231), all 8 skills, both activities, all three rubric descriptors and all 23 question templates. Every string is non-empty and keeps the English `{placeholders}`.
+- All 7 packs have every interface key (236), all 8 skills, both activities, all three rubric descriptors and all 23 question templates. Every string is non-empty and keeps the English `{placeholders}`.
 - Native script: every non-English string is in its own script. No stray Latin, apart from `ContinuED`, `QR`, `PIN`, `ID`, `CED` and `https`, and no characters from another Indian script.
 - All **49 origin/interface language combinations** render every skill ID and status. Each one has an oral check in the origin language.
 - Every numeracy variant (more than 1,000 checked) meets its constraint, such as no carrying or borrowing required. The expected answer is recomputed independently from what the learner sees.
@@ -53,7 +53,8 @@ These checks cannot judge whether a word is natural, age-appropriate or correctl
 5. On a real phone, switch the interface to your language and walk through roster → assessment → slip → receive → plan. Note any text that wraps badly, is cut off, or shows boxes instead of letters.
 6. Read the oral checks aloud and mark any word a device voice or recording would mispronounce.
 7. Do one **cross-language transfer**. Assess in your language on phone A. Open the slip on phone B with a different interface language. Check that the statuses and plan match.
-8. Send the sheet back to Ramith. He applies only the approved corrections, regenerates the sheets and re-runs `npm test`.
+8. Correct a word or sentence **in place**. Never reorder, delete or insert in the middle of a list: a stimulus's position is its repeat-protection ID. To retire one, replace it in place; new stimuli go at the end.
+9. Send the sheet back to Ramith. He applies only the approved corrections, regenerates the sheets and re-runs `npm test`.
 
 ### Marking a pack approved
 
@@ -77,9 +78,10 @@ Each item below is coded as a placeholder that is easy to change. Nothing here h
 | Tie rule across strands | numeracy before literacy | `STRAND_ORDER` in `skills.ts` |
 | Mastery rule | at least 2 independent successes, at least 1 at band 2 | `suggestFromAttempts` in `rubric.ts` |
 | "Not yet" rule | at least 2 incorrect and no success | `rubric.ts` |
-| Stopping rules | 16 items per session, 4 per skill, 2 skips per skill, about 20 minutes | `STOPPING` in `rubric.ts` |
+| Stopping rules | 16 items per session, at most 10 per strand, 4 per skill, 2 skips per skill, about 20 minutes | `STOPPING` in `rubric.ts` |
 | Band content | see `LEVEL_DESCRIPTORS` | `rubric.ts` |
 | Question formats | 20 families; the "point to the word" decoding format has no app audio (the teacher says the word) | `questions.ts` |
+| Comprehension question audio | none: the question repeats words from the sentence, so the teacher asks it after the child reads | `sr.comp` in `questions.ts` |
 | Numerals | Western digits (0–9) in every language | all packs |
 | Offline budget | up to 6 voiced variants per family and band | `OFFLINE_TARGETS` in `rubric.ts` |
 

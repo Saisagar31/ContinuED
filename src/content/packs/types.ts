@@ -74,7 +74,11 @@ export interface SentenceItem {
   a: string;
 }
 
-/** Literacy stimuli are authored per language and script, never translated word-for-word. Index 0 = band 1, 1 = band 2. */
+/**
+ * Literacy stimuli are authored per language and script, never translated word-for-word.
+ * Index 0 = band 1, 1 = band 2. APPEND-ONLY: an entry's position is its repeat-protection ID
+ * (questions.ts), so fix spellings in place and add new entries at the end.
+ */
 export interface LiteracyStimuli {
   sounds: [SoundItem[], SoundItem[]];
   words: [string[], string[]];

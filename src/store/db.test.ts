@@ -46,6 +46,19 @@ describe('teacher workspace', () => {
     await expect(b.addLearner({ id: l.id })).rejects.toThrow(/another workspace/);
   });
 
+  it('records the rubric version and remembers questions swapped out with "Different question"', async () => {
+    const l = await a.addLearner();
+    const s = await a.startSession(l.id, { assessmentLang: 'en', contentVersion: 'draft-1.0', rubricVersion: 'draft-rubric-1' });
+    expect(s.rubricVersion).toBe('draft-rubric-1');
+    await a.present(s.id, item(1));
+    await a.replaceCurrent(s.id, item(2));
+    const after = await a.replaceCurrent(s.id, item(3));
+    expect(after.current?.itemId).toBe('i3');
+    expect(after.shownNotAttempted).toEqual(['i1', 'i2']);
+    expect(after.attempts).toHaveLength(0); // swapping is not an attempt
+    expect((await a.session(s.id))?.shownNotAttempted).toEqual(['i1', 'i2']);
+  });
+
   it('persists the presented item and resumes exactly after a restart', async () => {
     const l = await a.addLearner();
     const s = await a.startSession(l.id, { assessmentLang: 'en', contentVersion: 'sample-0.1' });

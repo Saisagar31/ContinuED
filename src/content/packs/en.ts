@@ -127,6 +127,11 @@ export const ui = {
   'assess.noneHint': 'This learner has already seen every installed question for this step. You can review, change level, or stop.',
   'assess.review': 'Review results',
   'assess.noAlt': 'No other eligible question for this skill and level in the installed content.',
+  'assess.draftLang': 'The {lang} questions are an unreviewed draft. Check the wording before relying on the result.',
+  'assess.exhausted': 'No unseen questions are left for: {skills}. You can use earlier questions again, review what you have, or stop.',
+  'assess.allowRepeats': 'Use earlier questions again',
+  'assess.allMastered': 'Every skill was mastered in the last assessment, so there is nothing new to check. You can stop here.',
+  'assess.versionMismatch': 'This assessment was started with content version {cv}; this phone now has {mine}. Review what was answered, or start a new assessment.',
 
   // Review
   'review.back': '← Back to questions',

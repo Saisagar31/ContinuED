@@ -233,9 +233,26 @@ describe('question families (task 04)', () => {
     expect(f.identity('23,14', 'en')).toBe(f.identity('14,23', 'en'));
     expect(buildItem('add.story', '23,14', 2, 'en').itemId).toBe(buildItem('add.story', '23,14', 2, 'ta').itemId);
     expect(buildItem('add.story', '23,14', 2, 'en').prompt).not.toBe(buildItem('add.story', '23,14', 2, 'ta').prompt);
-    // The same word in two formats is one exposure.
-    const w = PACKS.mr.lit.words[0][0];
-    expect(buildItem('dc.read', w, 1, 'mr').itemId).toBe(buildItem('dc.find', w, 1, 'mr').itemId);
+    // The same word in two formats is one exposure, but two distinct content items.
+    const a = buildItem('dc.read', '1.0', 1, 'mr');
+    const b = buildItem('dc.find', '1.0', 1, 'mr');
+    expect(a.itemId).toBe(b.itemId);
+    expect(a.contentItemId).not.toBe(b.contentItemId);
+    expect(a.stimulus).toBe(PACKS.mr.lit.words[0][0]);
+  });
+
+  it('literacy identity is the stimulus position, so a spelling fix keeps repeat protection', () => {
+    const before = buildItem('dc.read', '2.3', 2, 'kn');
+    const words = PACKS.kn.lit.words[1];
+    const original = words[3];
+    words[3] = `${original}್`; // simulate a reviewer's correction
+    try {
+      const after = buildItem('dc.read', '2.3', 2, 'kn');
+      expect(after.itemId).toBe(before.itemId);
+      expect(after.stimulus).not.toBe(before.stimulus);
+    } finally {
+      words[3] = original;
+    }
   });
 
   it('seen items are excluded and exhaustion is detectable', () => {
@@ -268,6 +285,27 @@ describe('question families (task 04)', () => {
     const clips = questionSpokenStrings(lang);
     expect(clips.find((c) => c.contentId === 'add.bare.instruction')).toBeTruthy();
     expect(new Set(clips.map((c) => c.contentId)).size).toBe(clips.length);
+    // Every content item ID is unique, and every clip ID always means one exact text.
+    const ids = toContentPack(lang).items.map((i) => i.itemId);
+    expect(new Set(ids).size).toBe(ids.length);
+    const textByClip = new Map<string, string>();
+    for (const i of items) {
+      if (!i.spoken) continue;
+      const prev = textByClip.get(i.audioContentId);
+      expect(prev === undefined || prev === i.spoken, `${lang} ${i.audioContentId}`).toBe(true);
+      textByClip.set(i.audioContentId, i.spoken);
+    }
+  });
+
+  it.each(LANGS)('%s: no voiced prompt contains a word of the reading sentence it is about', (lang) => {
+    for (const band of BANDS) {
+      for (const it of eligibleItems('lit.sentence_reading', band, lang)) {
+        // A fixed instruction ("Read this sentence aloud.") is the same for every sentence, so it cannot leak one.
+        if (!it.spoken || it.audioContentId.endsWith('.instruction')) continue;
+        const words = (it.stimulus ?? '').split(/[\s.,!?।]+/u).filter((w) => w.length > 1);
+        for (const w of words) expect(it.spoken.includes(w), `${lang} ${it.contentItemId} voices “${w}”`).toBe(false);
+      }
+    }
   });
 
   it('fixed spoken strings cover every oral check and activity in all seven languages', () => {
