@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { go, useApp, useRoute } from './app/context';
-import { LANG_NAMES, packState } from './content/i18n';
-import { LANGS, type LangCode } from './domain/types';
+import { LangSelect } from './app/LangSelect';
+import { LANG_NAMES, packState, t, type MsgKey } from './content/i18n';
 import { SignIn } from './screens/SignIn';
 import { Roster } from './screens/Roster';
 import { LearnerDetail } from './screens/LearnerDetail';
@@ -13,15 +13,15 @@ import { PlanScreen } from './screens/PlanScreen';
 import { Groups } from './screens/Groups';
 import { Dashboard } from './screens/Dashboard';
 
-const NAV = [
-  { path: '', label: 'Learners', icon: '👥' },
-  { path: 'receive', label: 'Receive', icon: '⇩' },
-  { path: 'groups', label: 'Groups', icon: '◫' },
-  { path: 'dashboard', label: 'Trends', icon: '▤' },
+const NAV: { path: string; label: MsgKey; icon: string }[] = [
+  { path: '', label: 'nav.learners', icon: '👥' },
+  { path: 'receive', label: 'nav.receive', icon: '⇩' },
+  { path: 'groups', label: 'nav.groups', icon: '◫' },
+  { path: 'dashboard', label: 'nav.trends', icon: '▤' },
 ];
 
 export function App() {
-  const { ws, setWs, uiLang, setUiLang, online } = useApp();
+  const { ws, setWs, uiLang, online } = useApp();
   const route = useRoute();
   const main = useRef<HTMLElement>(null);
 
@@ -29,6 +29,11 @@ export function App() {
   useEffect(() => {
     main.current?.focus();
   }, [route.join('/')]);
+
+  // Screen readers and fonts pick the right script from the document language.
+  useEffect(() => {
+    document.documentElement.lang = LANG_NAMES[uiLang].bcp47;
+  }, [uiLang]);
 
   if (!ws) return <SignIn />;
 
@@ -51,24 +56,15 @@ export function App() {
     <div className="shell">
       <header className="topbar no-print">
         <a className="brand" href="#/">ContinuED</a>
-        <label className="lang-select">
-          <span className="sr-only">Interface language</span>
-          <select value={uiLang} onChange={(e) => setUiLang(e.target.value as LangCode)} aria-label="Interface language">
-            {LANGS.map((l) => (
-              <option key={l} value={l}>{LANG_NAMES[l].native}</option>
-            ))}
-          </select>
-        </label>
-        <button className="link" onClick={() => { setWs(null); go('/'); }} aria-label={`Sign out ${ws.displayName}`}>
-          {ws.displayName} · Switch
+        <LangSelect />
+        <button className="link" onClick={() => { setWs(null); go('/'); }} aria-label={`${t(uiLang, 'app.switch')}: ${ws.displayName}`}>
+          {ws.displayName} · {t(uiLang, 'app.switch')}
         </button>
       </header>
-      {!online && <div className="offline-bar no-print" role="status">Offline — work is saved on this phone</div>}
+      {!online && <div className="offline-bar no-print" role="status">{t(uiLang, 'app.offline')}</div>}
       {packState(uiLang) !== 'complete' && (
         <div className="draft-bar no-print" role="note">
-          {packState(uiLang) === 'draft'
-            ? `${LANG_NAMES[uiLang].english}: partial unreviewed draft — other text in English (review pending, task 09)`
-            : `${LANG_NAMES[uiLang].english} interface not yet available — showing English (task 09)`}
+          {t(uiLang, 'app.draftPack')}
         </div>
       )}
       <main ref={main} tabIndex={-1} className="main">{screen}</main>
@@ -76,7 +72,7 @@ export function App() {
         {NAV.map((n) => (
           <a key={n.path} href={`#/${n.path}`} aria-current={active === n.path ? 'page' : undefined}>
             <span aria-hidden="true">{n.icon}</span>
-            {n.label}
+            {t(uiLang, n.label)}
           </a>
         ))}
       </nav>

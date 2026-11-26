@@ -4,6 +4,28 @@ A running diary of what's in this repo, written so anyone (teammates, judges, fu
 
 ---
 
+## 26 Nov 2026: Skill map, question bank and seven language packs (Ramith, tasks 04 + 09, branch `ramith/04-09-content-language-packs`)
+
+**In simple terms:** the app now speaks all seven languages, and the questions it asks come from a real question bank instead of a placeholder. **Everything is a draft:** no educator or native speaker has checked it yet, and the app says so with a banner.
+- **Seven language packs (`src/content/packs/`):** English, Marathi, Kannada, Hindi, Telugu, Tamil and Malayalam. Each pack has every on-screen word (221 labels and messages), the 8 skill names, peer groups, oral checks, rubric descriptions, activities, question wording, and reading words and sentences written for that language and script.
+- **Every screen now uses them.** A teacher can switch the app language on the sign-in screen and the top bar. The learner's assessment language stays separate.
+- **The receiving plan** shows activities and peer groups in the teacher's language. It shows the oral check in the child's origin language, with a translation underneath.
+- **Question bank (`src/content/questions.ts`):** 20 question formats, at least two for every skill at both levels. Arithmetic questions are generated with built-in checks, for example "no carrying" really means no carrying. Each question has an ID, so a child isn't asked the same thing twice, even after switching language.
+- **Rubric (`src/content/rubric.ts`):** when a skill counts as mastered, developing or not yet, plus when to stop and how many voiced questions go into an offline pack. These are starting rules for teachers to pilot.
+- **Review sheets (`docs/review/*.csv`):** one spreadsheet per language for native-speaker reviewers. `docs/CONTENT_REVIEW.md` explains what to check and how a pack gets approved.
+- **Audio budget measured:** about 147 clips and 8–10k characters per language, so about 62,500 characters for all seven.
+
+**Checked:**
+- 117 tests pass (65 new). They check every pack is complete and in its own script, all 49 language pairs, more than 1,000 generated arithmetic questions, repeat protection, and that reading words are never read aloud by the app.
+- Typecheck and build pass.
+
+**Not checked:**
+- Any native-speaker or educator review.
+- Real phones (font rendering, text wrapping).
+- Pronunciation.
+
+---
+
 ## 26 Nov 2026: Two new optional fields on a saved session (Omkar, task 02, branch `omkar/02-foundation`)
 
 **In simple terms:** after reviewing Ramith's assessment engine, we added two optional fields to what's saved for each assessment session.
