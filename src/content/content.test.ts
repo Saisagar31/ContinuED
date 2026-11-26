@@ -25,7 +25,7 @@ const SCRIPT: Record<Exclude<LangCode, 'en'>, RegExp> = {
 };
 const ALL_INDIC = /[ऀ-෿]/g;
 /** Latin tokens allowed inside native-script UI strings (product and technical names). */
-const ALLOWED_LATIN = /\b(ContinuED|QR|PIN|IDs|ID|CED|https)\b/g;
+const ALLOWED_LATIN = /\b(ContinuED|ElevenLabs|QR|PIN|IDs|ID|CED|https)\b/g;
 
 function allStrings(lang: LangCode): [string, string][] {
   const p = PACKS[lang];

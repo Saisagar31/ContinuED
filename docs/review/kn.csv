@@ -301,6 +301,7 @@
 "interface","audio.play","▶ Play recording","▶ ಧ್ವನಿಮುದ್ರಣ ಕೇಳಿಸಿ","","",""
 "interface","oral.clip","Audio: reviewed recording installed","ಧ್ವನಿ: ಪರಿಶೀಲಿತ ಧ್ವನಿಮುದ್ರಣ ಸ್ಥಾಪಿತವಾಗಿದೆ","","",""
 "interface","oral.deviceSpeech","Audio: phone voice only (not reviewed)","ಧ್ವನಿ: ಫೋನಿನ ಧ್ವನಿ ಮಾತ್ರ (ಪರಿಶೀಲಿಸಿಲ್ಲ)","","",""
+"interface","audio.credit","Voice by ElevenLabs","ಧ್ವನಿ: ElevenLabs","","",""
 "interface","assess.play","▶ Play the instruction","▶ ಸೂಚನೆ ಕೇಳಿಸಿ","","",""
 "skill","num.recognition.name","Number recognition","ಸಂಖ್ಯೆ ಗುರುತಿಸುವಿಕೆ","","",""
 "skill","num.recognition.group","Number-reading group","ಸಂಖ್ಯೆ ಓದುವ ಗುಂಪು","","",""

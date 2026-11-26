@@ -150,6 +150,8 @@ function OralCheck({ lang, skillId }: { lang: LangCode; skillId: string }) {
           {avail === 'clip' ? t(uiLang, 'audio.play') : t(uiLang, 'oral.play')}
         </button>
       )}
+      {/* ElevenLabs free plan requires attribution wherever its recordings play. */}
+      {avail === 'clip' && <p className="small muted">{t(uiLang, 'audio.credit')}</p>}
       <p className="small muted">{t(uiLang, 'oral.readYourself', { lang: name })}</p>
     </section>
   );
