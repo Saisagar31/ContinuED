@@ -21,4 +21,17 @@ Updated 26 Nov 2026 against `PROJECT_EXECUTION_PLAN.md`. The reset and integrate
 | 14 | Sai + Venkat + reviewers | `PILOT_RELEASE_RECORD.md` defines the evidence matrix | Exact-candidate classroom pilot, seven reviews, device results and sign-offs |
 | 15 | Omkar deploys; Sai accepts | Release decision template exists | Production promotion only after 14 and all release gates; live two-phone smoke test |
 
+## Omkar's remaining work (updated 26 Nov 2026)
+
+All of Omkar's code is merged on `main`. What's left needs accounts, devices or the pilot. Account setup is requested in issue #18.
+
+| Task | Omkar still has to | Blocked on |
+| --- | --- | --- |
+| 05 | Help Ramith set up the AWS and ElevenLabs accounts (MFA, region, realistic budget, deploy access for Omkar). Run the voice sample per language (`scripts/audio/build.ts --sample`) and record bytes, credits and listening verdicts. | Ramith creating the accounts (#18) |
+| 13 | Deploy staging (AWS stack + Cloudflare Pages), set the Cognito callback and CORS URLs, then run the three drills: bad app rollout, failed audio-pack update, DynamoDB restore into a new table. | AWS account; Sai connecting Cloudflare (#18) |
+| 11 | On staging: two test schools stay isolated, replay and partial acknowledgement keep counts correct, expired login requires re-sign-in, key rotation, device loss and backup restore. Decide the real budget (the KMS key alone is billed monthly). | Staging deploy |
+| 10 | Generate the seven voice packs from approved content, get listening reviews (`scripts/audio/review.ts`), publish versioned packs, and record actual bytes and credits. | ElevenLabs account; approved content (task 09) |
+| 08 | With Venkat: two-phone offline transfer test and a printed-QR scan test, then verified issuance using staging signing keys. | Two phones; staging |
+| 15 | Promote the exact tested release to production, run the live two-phone smoke test and fill in the release record. | Task 14 pilot sign-off |
+
 The local prototype uses synthetic learners and draft content. Do not use it for real learner records until the school approves the pilot and the applicable privacy, content, trust and device decisions. See `PRODUCT_BRIEF.md` for decision owners and `PILOT_RELEASE_RECORD.md` for the evidence still needed.
