@@ -80,7 +80,10 @@ Resources:
       UserPoolId: !Ref UserPool
       ClientName: !Sub continued-pwa-${Stage}
       GenerateSecret: false # public browser client
-      ExplicitAuthFlows: [ALLOW_USER_SRP_AUTH, ALLOW_REFRESH_TOKEN_AUTH]
+      # USER_PASSWORD_AUTH: the PWA (src/auth/cognito.ts) sends the password over TLS to Cognito.
+      # SRP is kept so a later SRP client can switch without a template change.
+      # REFRESH_TOKEN_AUTH only works while refresh-token rotation is OFF (it is not enabled here).
+      ExplicitAuthFlows: [ALLOW_USER_SRP_AUTH, ALLOW_USER_PASSWORD_AUTH, ALLOW_REFRESH_TOKEN_AUTH]
       PreventUserExistenceErrors: ENABLED
       EnableTokenRevocation: true
       IdTokenValidity: 60
