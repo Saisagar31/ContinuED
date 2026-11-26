@@ -48,6 +48,7 @@ Follow [`infra/README.md`](../infra/README.md):
 - Copy the stack outputs into the Pages env vars (step 2.4) and redeploy Pages.
 
 ## 4. Audio packs (task 10)
+Follow [`AUDIO_PACK_SETUP.md`](AUDIO_PACK_SETUP.md) for account, sample, review and URL details. The app's `VITE_AUDIO_BASE_URL` points to the release base; the installer adds `/<lang>/manifest.json` itself.
 1. **Build:**
    ```
    npx tsx scripts/audio/build.ts --lang <xx> --budget <credits>

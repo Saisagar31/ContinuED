@@ -91,12 +91,12 @@ Distinct spoken strings per language for one offline pack. This covers question 
 
 | Language | Offline question items | Distinct clips | Characters to voice |
 |---|---|---|---|
-| en | 220 | 147 | 8,671 |
-| mr | 220 | 147 | 7,895 |
-| kn | 220 | 147 | 9,258 |
-| hi | 220 | 147 | 7,846 |
-| te | 220 | 147 | 9,111 |
-| ta | 220 | 147 | 10,200 |
-| ml | 220 | 147 | 9,522 |
+| en | 220 | 151 | 8,779 |
+| mr | 220 | 151 | 8,124 |
+| kn | 220 | 151 | 9,412 |
+| hi | 220 | 151 | 8,010 |
+| te | 220 | 151 | 9,169 |
+| ta | 220 | 151 | 10,237 |
+| ml | 220 | 151 | 9,673 |
 
-**All 7 languages: 1,029 clips and about 62,500 characters.** At the assumed 1 credit per character, that is more than one month of a small ElevenLabs plan's credits. The rate is not verified; check the account's billing page in task 05. Generate one language at a time, after its review, with `--budget`. The full eligible item pool is 8,631 items per language. Only the bounded offline subset above is voiced; any other item shows text, or uses device speech where available.
+**All 7 languages: 1,057 clips and 63,404 characters** in the current draft dry run. The script's default estimate is one credit per character; actual usage depends on the account, model and billing terms. Check the account's usage and set an API-key spending limit before generating. Generate one language at a time, after its review, with `--budget`. The full eligible item pool is 8,631 items per language. Only the bounded offline subset above is voiced; any other item shows text, or uses device speech where available.
