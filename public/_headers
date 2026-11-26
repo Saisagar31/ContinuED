@@ -1,0 +1,22 @@
+# Cloudflare Pages response headers (copied to dist/ by Vite).
+# Docs: https://developers.cloudflare.com/pages/configuration/headers/
+
+# Always re-check the service worker, app shell and manifest so updates arrive.
+/sw.js
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache
+
+# Vite puts content-hashed files here; a new release gets new names.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Baseline hardening for every page.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Permissions-Policy: camera=(self), microphone=(), geolocation=()

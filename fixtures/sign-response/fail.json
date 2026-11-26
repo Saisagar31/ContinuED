@@ -1,0 +1,1 @@
+{"_note":"Fails: DER-encoded signature length, not raw r||s.","_expect":"64-byte","kid":"school-test-2026a","sig":"MEUCIQDx"}
