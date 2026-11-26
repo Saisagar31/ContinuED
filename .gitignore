@@ -31,3 +31,6 @@ dist-ssr
 # Local-only working files (not needed in git)
 docs/pitch/
 ~$*
+
+# Audio build output (task 10) — generated MP3s, ledger, manifests
+audio-out/
