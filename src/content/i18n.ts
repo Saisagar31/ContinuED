@@ -1,10 +1,13 @@
 /**
- * Interface strings. English is complete. Hindi and Marathi carry a small set of
- * UNREVIEWED DRAFT strings so native-script rendering can be checked on phones;
- * every other key falls back to English with a visible banner.
- * Task 09 (Ramith + seven reviewers) owns the reviewed packs.
+ * Interface strings for all seven languages, read from the language packs in
+ * ./packs (task 09). Every pack has every key (checked at compile time and by
+ * content.test.ts). Non-English packs are unreviewed drafts until a named
+ * native-speaker reviewer approves them, and the app shows a banner until then.
  */
 import type { LangCode } from '../domain/types';
+import { PACKS, en, fill, skillText, type MsgKey } from './packs';
+
+export type { MsgKey };
 
 export const LANG_NAMES: Record<LangCode, { native: string; english: string; bcp47: string }> = {
   en: { native: 'English', english: 'English', bcp47: 'en-IN' },
@@ -16,80 +19,28 @@ export const LANG_NAMES: Record<LangCode, { native: string; english: string; bcp
   ml: { native: 'മലയാളം', english: 'Malayalam', bcp47: 'ml-IN' },
 };
 
-const en = {
-  'status.mastered': 'Mastered',
-  'status.developing': 'Developing',
-  'status.not_yet': 'Not yet',
-  'status.insufficient': 'Insufficient evidence',
-  'skill.num.recognition': 'Number recognition',
-  'skill.num.place_value': 'Tens and ones',
-  'skill.num.add_no_carry': 'Addition without carrying',
-  'skill.num.sub_borrow': 'Subtraction with borrowing',
-  'skill.num.fractions': 'Halves and quarters',
-  'skill.lit.initial_sounds': 'Initial sounds',
-  'skill.lit.decoding': 'Word decoding',
-  'skill.lit.sentence_reading': 'Short-sentence reading',
-  'plan.next': 'Next lesson',
-  'plan.check': 'Quick check first',
-  'plan.activities': 'Activities (15 minutes each)',
-  'plan.group': 'Peer group',
-  'plan.because': 'Why this suggestion',
-  'plan.assessedIn': 'Assessed in',
-  'plan.empty': 'This transfer has no skill results.',
-  'plan.allMastered': 'Every skill in this transfer is mastered. Continue with the next level of your curriculum.',
-  'plan.insufficient': 'There is not enough evidence to recommend a lesson. Run a short entry check with this learner.',
-  'plan.oral': 'Oral check in the origin language',
-} as const;
-
-export type MsgKey = keyof typeof en;
-
-const drafts: Partial<Record<LangCode, Partial<Record<MsgKey, string>>>> = {
-  hi: {
-    'status.mastered': 'सीख लिया',
-    'status.developing': 'सीख रहे हैं',
-    'status.not_yet': 'अभी नहीं',
-    'status.insufficient': 'पर्याप्त साक्ष्य नहीं',
-    'skill.num.recognition': 'संख्या पहचान',
-    'skill.num.place_value': 'दहाई और इकाई',
-    'skill.num.add_no_carry': 'बिना हासिल का जोड़',
-    'skill.num.sub_borrow': 'उधार लेकर घटाना',
-    'skill.num.fractions': 'आधा और चौथाई',
-    'skill.lit.initial_sounds': 'प्रारंभिक ध्वनियाँ',
-    'skill.lit.decoding': 'शब्द पढ़ना',
-    'skill.lit.sentence_reading': 'छोटे वाक्य पढ़ना',
-    'plan.next': 'अगला पाठ',
-    'plan.activities': 'गतिविधियाँ (15 मिनट)',
-  },
-  mr: {
-    'status.mastered': 'आत्मसात',
-    'status.developing': 'शिकत आहे',
-    'status.not_yet': 'अजून नाही',
-    'status.insufficient': 'पुरेसा पुरावा नाही',
-    'skill.num.recognition': 'संख्या ओळख',
-    'skill.num.place_value': 'दशक आणि एकक',
-    'skill.num.add_no_carry': 'हातचा न घेता बेरीज',
-    'skill.num.sub_borrow': 'हातचा घेऊन वजाबाकी',
-    'skill.num.fractions': 'अर्धा आणि पाव',
-    'skill.lit.initial_sounds': 'सुरुवातीचे ध्वनी',
-    'skill.lit.decoding': 'शब्द वाचन',
-    'skill.lit.sentence_reading': 'लहान वाक्य वाचन',
-    'plan.next': 'पुढील पाठ',
-    'plan.activities': 'उपक्रम (15 मिनिटे)',
-  },
-};
-
-export function t(lang: LangCode, key: MsgKey): string {
-  return drafts[lang]?.[key] ?? en[key];
+/** Interface text in `lang`, with optional {placeholder} values. Falls back to English per key. */
+export function t(lang: LangCode, key: MsgKey, vars?: Record<string, string | number>): string {
+  const s = PACKS[lang]?.ui[key] ?? en.ui[key];
+  return vars ? fill(s, vars) : s;
 }
 
-/** 'complete' | 'draft' (some unreviewed strings) | 'fallback' (English only). */
+/**
+ * 'complete' = English master or a reviewer-approved pack;
+ * 'draft' = every key present but not yet reviewed;
+ * 'fallback' = no pack, English shown.
+ */
 export function packState(lang: LangCode): 'complete' | 'draft' | 'fallback' {
   if (lang === 'en') return 'complete';
-  return drafts[lang] ? 'draft' : 'fallback';
+  const p = PACKS[lang];
+  if (!p) return 'fallback';
+  return p.reviewStatus === 'approved' && missingKeys(lang).length === 0 ? 'complete' : 'draft';
 }
 
 export function missingKeys(lang: LangCode): MsgKey[] {
-  return (Object.keys(en) as MsgKey[]).filter((k) => lang !== 'en' && !drafts[lang]?.[k]);
+  if (lang === 'en') return [];
+  const ui = PACKS[lang]?.ui as Partial<Record<MsgKey, string>> | undefined;
+  return (Object.keys(en.ui) as MsgKey[]).filter((k) => !ui?.[k]?.trim());
 }
 
-export const skillName = (lang: LangCode, id: string) => t(lang, `skill.${id}` as MsgKey) ?? id;
+export const skillName = (lang: LangCode, id: string) => skillText(lang, id)?.name ?? id;

@@ -11,7 +11,8 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
     "api:dev": "tsx api/dev-server.ts",
-    "ci": "npm run typecheck && npm test && npm run build"
+    "ci": "npm run typecheck && npm test && npm run build",
+    "content:review-sheets": "tsx scripts/content/review-sheets.ts"
   },
   "dependencies": {
     "idb": "8.0.0",

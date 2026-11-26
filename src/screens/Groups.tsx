@@ -1,6 +1,7 @@
 import { useAsync, useApp, useWs } from '../app/context';
 import { Empty, Loading, SkillLabel } from '../app/ui';
 import { t } from '../content/i18n';
+import { skillText } from '../content/packs';
 import { SKILL_BY_ID } from '../content/skills';
 import { summarise } from '../assess/stubEngine';
 import { groupByNextSkill } from '../plan/plan';
@@ -10,7 +11,7 @@ import type { SkillSummary } from '../domain/types';
 
 export function Groups() {
   const ws = useWs();
-  const { uiLang } = useApp();
+  const { uiLang: L } = useApp();
   const data = useAsync(async () => {
     const [learners, sessions, transfers] = await Promise.all([ws.learners(), ws.sessions(), ws.transfers()]);
     const fromTransfers = new Map<string, SkillSummary[]>();
@@ -28,21 +29,21 @@ export function Groups() {
     return { groups: groupByNextSkill(rows), unassessed: learners.length - rows.length };
   }, [ws.teacherId]);
 
-  if (data.loading && !data.data) return <Loading />;
+  if (data.loading && !data.data) return <Loading label={t(L, 'common.loading')} />;
   const { groups, unassessed } = data.data!;
 
   return (
     <div className="stack">
-      <h1>Groups for the next activity</h1>
-      <p className="muted small">Learners are grouped by the skill their latest result points to. Use it to plan tomorrow’s class.</p>
-      {groups.size === 0 && <Empty title="No results to group yet">Complete an assessment or add a transferred learner.</Empty>}
+      <h1>{t(L, 'groups.title')}</h1>
+      <p className="muted small">{t(L, 'groups.intro')}</p>
+      {groups.size === 0 && <Empty title={t(L, 'groups.empty')}>{t(L, 'groups.emptyHint')}</Empty>}
       {[...groups].map(([key, members]) => (
         <section key={key} className="card">
           <h2>
-            {SKILL_BY_ID[key] ? <SkillLabel id={key} lang={uiLang} /> : key === 'all_mastered' ? 'All skills mastered' : key === 'insufficient' ? t(uiLang, 'status.insufficient') : 'No results'}
+            {SKILL_BY_ID[key] ? <SkillLabel id={key} lang={L} /> : key === 'all_mastered' ? t(L, 'groups.allMastered') : key === 'insufficient' ? t(L, 'status.insufficient') : t(L, 'groups.noResults')}
             <span className="muted small"> · {members.length}</span>
           </h2>
-          {SKILL_BY_ID[key] && <p className="small muted">Try: {SKILL_BY_ID[key].activities[0].title}</p>}
+          {SKILL_BY_ID[key] && <p className="small muted">{t(L, 'groups.try', { activity: skillText(L, key)?.activities[0]?.title ?? SKILL_BY_ID[key].activities[0].title })}</p>}
           <ul className="chips">
             {members.map((m) => (
               <li key={m.learner.id}>
@@ -56,7 +57,7 @@ export function Groups() {
           </ul>
         </section>
       ))}
-      {unassessed > 0 && <p className="small muted">{unassessed} learner{unassessed === 1 ? '' : 's'} without results yet.</p>}
+      {unassessed > 0 && <p className="small muted">{t(L, 'groups.unassessed', { n: unassessed })}</p>}
     </div>
   );
 }
