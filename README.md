@@ -13,17 +13,9 @@
 ## Run it
 See [`docs/SETUP.md`](docs/SETUP.md). In short: `npm ci`, then `npm run dev` (app), `npm run api:dev` (API) and `npm test`.
 
-## Status by task (plan section 4)
-| Task | Owner | Status |
-|---|---|---|
-| 00 Reset | Omkar | PR ready. Merging waits until after the pitch. |
-| 02 Foundation, CI, contracts | Omkar | This branch |
-| 03 / 07 / 08 / 12 App screens, workspace, transfer, dashboard | Venkat (+ Sai, Omkar) | Built with sample data. Needs device testing. |
-| 04 / 09 Content and 7 language packs | Ramith + educators + reviewers | Sample content only |
-| 05 / 10 Accounts, ElevenLabs audio | Ramith + Omkar | Not started. Needs project accounts. |
-| 06 Assessment engine | Sai | Stub engine in place |
-| 11 School services | Omkar + Ramith | In progress |
-| 13–15 Staging, pilot, production | Team | Not started |
+## Project status
+
+The reset and integrated app are on `main`. The dynamic assessment engine, teacher workspace, transfer flow, school API and dashboard have automated coverage. Content and rubrics are still drafts; no reviewed audio packs, staging pilot or production release have been recorded. See the [task status](docs/PLAN_STATUS.md), [first-release brief](docs/PRODUCT_BRIEF.md) and [pilot evidence record](docs/PILOT_RELEASE_RECORD.md) for the remaining approvals and tests.
 
 What changed and why is explained in plain English in [`docs/WHAT_WE_BUILT.md`](docs/WHAT_WE_BUILT.md).
 

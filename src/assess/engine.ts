@@ -69,6 +69,17 @@ export function evidenceFor(attempts: Attempt[], skillId: string): EvidenceCount
   return e;
 }
 
+/** Every question previously shown to this learner, including unanswered drafts and swaps. */
+export function exposedItemIds(sessions: readonly Session[]): Set<string> {
+  const ids = new Set<string>();
+  for (const session of sessions) {
+    for (const attempt of session.attempts) ids.add(attempt.itemId);
+    for (const itemId of session.shownNotAttempted ?? []) ids.add(itemId);
+    if (session.current) ids.add(session.current.itemId);
+  }
+  return ids;
+}
+
 /** Band-aware suggestion for one skill (rubric.suggestFromAttempts). Use this where attempts are available. */
 export function suggestStatusFor(attempts: Attempt[], skillId: string): SkillStatus {
   return suggestFromAttempts(attempts.filter((a) => a.skillId === skillId));

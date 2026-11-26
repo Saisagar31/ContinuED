@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import type { Attempt, LangCode, Observation, Session, SkillStatus } from '../domain/types';
 import { eligibleItems } from '../content/questions';
 import { STOPPING } from '../content/rubric';
-import { nextItem, reasonText, suggestStatus, suggestStatusFor, summarise, whyStopped } from './engine';
+import { exposedItemIds, nextItem, reasonText, suggestStatus, suggestStatusFor, summarise, whyStopped } from './engine';
 
 /** Deterministic random source so paths are reproducible. */
 function seeded(seed: number) {
@@ -36,6 +36,20 @@ function run(respond: (a: { skillId: string; band: number; n: number }) => Obser
 const path = (s: Session) => s.attempts.map((a) => `${a.skillId}@${a.band}`);
 
 describe('assessment engine (task 06)', () => {
+  it('reassessment excludes questions shown but unanswered in earlier sessions', () => {
+    const previous = base();
+    const first = nextItem(previous, new Set(), {}, false, { random: seeded(4) })!;
+    previous.shownNotAttempted = [first.itemId];
+    const second = nextItem(previous, new Set(), {}, false, { random: seeded(5) })!;
+    previous.current = second;
+
+    const seen = exposedItemIds([previous]);
+    expect(seen).toEqual(new Set([first.itemId, second.itemId]));
+    const reassessment = base();
+    const next = nextItem(reassessment, seen, {}, false, { random: seeded(4) })!;
+    expect(seen.has(next.itemId)).toBe(false);
+  });
+
   it('learners with different response patterns follow different skill/difficulty paths', () => {
     const strong = run(() => 'independent');
     const weak = run(() => 'incorrect');

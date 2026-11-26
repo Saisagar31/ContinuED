@@ -72,6 +72,12 @@ a { color: var(--brand); }
 .topbar select { background: transparent; color: var(--brand-ink); border: 1px solid color-mix(in srgb, var(--brand-ink) 45%, transparent); border-radius: 8px; padding: .3rem; min-height: 36px; }
 .topbar select option { color: #111; }
 .topbar .link { color: var(--brand-ink); font-size: .85rem; max-width: 40vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 520px) {
+  .topbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+  .topbar .brand { margin-right: 0; }
+  .topbar .link { max-width: 100%; overflow: visible; white-space: normal; }
+  .topbar button.link { grid-column: 1 / -1; justify-content: flex-start; text-align: left; }
+}
 .offline-bar, .draft-bar { padding: .35rem 16px; font-size: .85rem; }
 .offline-bar { background: var(--ins-bg); color: var(--ins); }
 .draft-bar { background: var(--dev-bg); color: var(--dev); }

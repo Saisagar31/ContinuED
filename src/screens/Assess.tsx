@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { go, useApp, useWs } from '../app/context';
 import { ErrorBox, Loading, Notice, SkillLabel } from '../app/ui';
 import { LANG_NAMES, contentReviewed, skillName, t, type MsgKey } from '../content/i18n';
-import { nextItem, reasonText, whyStopped, type StopReason } from '../assess/engine';
+import { exposedItemIds, nextItem, reasonText, whyStopped, type StopReason } from '../assess/engine';
 import type { Observation, PresentedItem, Session, SkillStatus } from '../domain/types';
 import type { Workspace } from '../store/db';
 import { activePack } from '../audio/packManager';
@@ -26,7 +26,7 @@ async function clipCheck(lang: LangCode): Promise<((id: string) => boolean) | un
 
 async function context(ws: Workspace, s: Session) {
   const others = (await ws.sessions(s.learnerId)).filter((x) => x.id !== s.id);
-  const seen = new Set(others.flatMap((x) => x.attempts.map((a) => a.itemId)));
+  const seen = exposedItemIds(others);
   const prev = s.predecessorId ? others.find((x) => x.id === s.predecessorId) : undefined;
   const prior: Record<string, SkillStatus> = prev?.confirmed ?? {};
   return { seen, prior };
@@ -203,18 +203,20 @@ function StopMessage({ reason, answered }: { reason: StopReason | null; answered
   );
 }
 
-/** Plays the spoken instruction: reviewed clip if installed, else the phone voice; hidden when neither exists. */
+/** Plays a reviewed clip or device speech, with a visible text-only state. */
 function PlayInstruction({ lang, contentId, text }: { lang: LangCode; contentId: string; text: string }) {
   const { uiLang: L } = useApp();
-  const [avail, setAvail] = useState<Availability>('text_only');
+  const [avail, setAvail] = useState<Availability | null>(null);
   useEffect(() => {
     let live = true;
+    setAvail(null);
     void availabilityFor(lang, contentId).then((a) => live && setAvail(a));
     return () => {
       live = false;
     };
   }, [lang, contentId]);
-  if (avail === 'text_only') return null;
+  if (avail === null) return null;
+  if (avail === 'text_only') return <p className="small muted">{t(L, 'oral.noPack', { lang: LANG_NAMES[lang].native })}</p>;
   return (
     <button className="small" onClick={() => void playFor(lang, contentId, text).then(setAvail)}>
       {t(L, 'assess.play')}

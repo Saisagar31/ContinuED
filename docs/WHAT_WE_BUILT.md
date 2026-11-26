@@ -4,6 +4,16 @@ A running diary of what's in this repo, written so anyone (teammates, judges, fu
 
 ---
 
+## 26 Nov 2026: Sai's plan review and mobile walkthrough
+
+**Built:** a first-release brief with teacher journeys, acceptance cases, review owners and school decisions (`PRODUCT_BRIEF.md`); a pilot/release evidence record (`PILOT_RELEASE_RECORD.md`); and a current task status. The assessment now excludes questions shown but unanswered in an earlier session. The assessment screen explains when no reviewed recording is installed, and the mobile header keeps its controls visible.
+
+**Checked:** typecheck, 275 tests and production build; a synthetic 390 px browser journey from teacher profile and learner creation through pause/reload/resume, skipped observation, confirmed result, transfer slip, pasted receive and plan. The pending question stayed the same after reload and the browser reported no page errors.
+
+**Still open:** real teachers have not performed an uncoached walkthrough; the school has not approved privacy/device policy or draft content; seven audio packs, physical two-phone testing, staging and production evidence remain pending. The browser journey is local synthetic evidence, not a classroom pilot.
+
+---
+
 ## 26 Nov 2026: Audio tool now reads all seven language packs (Omkar, task 10, branch `omkar/10b-audio-from-packs`)
 
 **In simple terms:** the tool that makes voice recordings used to know only the old English sample. Now it reads Ramith's seven language packs and lists every line the app may say out loud in each language.
