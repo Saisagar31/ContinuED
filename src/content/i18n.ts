@@ -26,6 +26,16 @@ export function t(lang: LangCode, key: MsgKey, vars?: Record<string, string | nu
 }
 
 /**
+ * True only when a named reviewer approved this language's content (questions,
+ * rubric, activities). Unlike packState, English is not exempt: it is the
+ * translation master, but its content still needs educator approval.
+ */
+export function contentReviewed(lang: LangCode): boolean {
+  return PACKS[lang]?.reviewStatus === 'approved';
+}
+
+/**
+ * Interface translation state, for the app-wide banner.
  * 'complete' = English master or a reviewer-approved pack;
  * 'draft' = every key present but not yet reviewed;
  * 'fallback' = no pack, English shown.
