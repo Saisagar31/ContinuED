@@ -55,6 +55,15 @@ export interface PresentedItem {
   expected: string;
   selectionReason: string;
   presentedAt: string;
+  // Added by task 06 (all optional, so older saved sessions still load):
+  /** Question family (task format) from src/content/questions.ts. */
+  familyId?: string;
+  /** What the learner is shown. Kept apart from `prompt` so a reading stimulus is never voiced. */
+  stimulus?: string;
+  /** What audio may play for this item. */
+  audio?: 'none' | 'instruction' | 'full';
+  /** Audio-pack clip ID for this item. */
+  audioContentId?: string;
 }
 
 export interface Attempt extends PresentedItem {

@@ -4,7 +4,7 @@ import { ErrorBox, Loading, SkillLabel, StatusPill } from '../app/ui';
 import { skillName, t } from '../content/i18n';
 import { skillText } from '../content/packs';
 import { orderedSkills } from '../content/skills';
-import { evidenceFor, suggestStatus } from '../assess/stubEngine';
+import { evidenceFor, suggestStatusFor } from '../assess/engine';
 import { STATUSES, type SkillStatus } from '../domain/types';
 
 export function Review({ sessionId }: { sessionId: string }) {
@@ -26,7 +26,7 @@ export function Review({ sessionId }: { sessionId: string }) {
   const skills = orderedSkills().filter((sk) => session.attempts.some((a) => a.skillId === sk.id));
   const rows = skills.map((sk) => {
     const ev = evidenceFor(session.attempts, sk.id);
-    return { sk, ev, suggested: suggestStatus(ev) };
+    return { sk, ev, suggested: suggestStatusFor(session.attempts, sk.id) };
   });
   const missing = rows.filter((r) => !picked[r.sk.id]);
   const overridesMissingReason = rows.filter((r) => picked[r.sk.id] && picked[r.sk.id] !== r.suggested && !reasons[r.sk.id]?.trim());

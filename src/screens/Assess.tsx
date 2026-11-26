@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { go, useApp, useWs } from '../app/context';
 import { ErrorBox, Loading, SkillLabel } from '../app/ui';
 import { LANG_NAMES, t, type MsgKey } from '../content/i18n';
-import { nextItem } from '../assess/stubEngine';
+import { nextItem, reasonText } from '../assess/engine';
 import type { Observation, Session, SkillStatus } from '../domain/types';
 import type { Workspace } from '../store/db';
 
@@ -103,12 +103,20 @@ export function Assess({ sessionId }: { sessionId: string }) {
         <>
           <section className="card question" aria-live="polite">
             <div className="muted small"><SkillLabel id={item.skillId} lang={L} /> · {t(L, 'assess.level', { n: item.band })}</div>
+            <div className="small muted">{t(L, 'assess.say')}</div>
             <p className="prompt" lang={session.assessmentLang}>{item.prompt}</p>
+            {item.stimulus && (
+              <>
+                <div className="small muted">{t(L, 'assess.show')}</div>
+                <p className="stimulus big" lang={session.assessmentLang}>{item.stimulus}</p>
+                {item.skillId.startsWith('lit.') && <p className="small">{t(L, 'assess.noAudioStimulus')}</p>}
+              </>
+            )}
             <details>
               <summary>{t(L, 'assess.expected')}</summary>
               <p className="mono" lang={session.assessmentLang}>{item.expected}</p>
             </details>
-            <p className="small muted">{t(L, 'assess.why', { reason: item.selectionReason })}</p>
+            <p className="small muted">{t(L, 'assess.why', { reason: reasonText(L, item.selectionReason) })}</p>
           </section>
           <div className="obs-grid" role="group" aria-label={t(L, 'assess.record')}>
             {OBS_BUTTONS.map((b) => (
