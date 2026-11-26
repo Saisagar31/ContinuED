@@ -37,7 +37,7 @@ export function AudioPacks() {
   async function install(lang: LangCode) {
     if (!AUDIO_BASE_URL) return;
     setRows((r) => ({ ...r, [lang]: { ...r[lang], busy: true, message: undefined, failed: false } }));
-    const res = await installPack(lang, `${AUDIO_BASE_URL}/${lang}`);
+    const res = await installPack(lang, AUDIO_BASE_URL);
     setRows((r) => ({
       ...r,
       [lang]: res.ok
