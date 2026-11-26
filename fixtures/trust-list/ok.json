@@ -1,0 +1,1 @@
+{"_note":"Synthetic test key (public part only).","keys":[{"kid":"school-test-2026a","issuer":"Test School A","publicJwk":{"kty":"EC","crv":"P-256","x":"HDwLX_ErdINvmXsL2a9dd6K_xskCE65WZvhcbNocX1I","y":"li_2NbgF1rB5UxvMF8rN4QoQr2QLEy9WRdsYHgq1OaY"},"notBefore":"2026-01-01","notAfter":"2027-12-31"}],"revoked":[],"asOf":"2026-11-20T00:00:00Z"}

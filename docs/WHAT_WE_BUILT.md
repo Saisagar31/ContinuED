@@ -4,6 +4,43 @@ A running diary of what's in this repo, written so anyone (teammates, judges, fu
 
 ---
 
+## 26 Nov 2026: Foundation: shared contracts, API skeleton, test fixtures, CI (Omkar, task 02, branch `omkar/02-foundation`)
+
+**In simple terms:** we set up the ground rules and safety checks so 4 people can build at once without breaking each other's work.
+- **Shared contracts (`shared/`):** one place that defines the exact shape of everything that moves between parts of the system:
+  - the content questions
+  - the sync messages a phone sends to the school server, and the server's reply
+  - the signing request (how a school "stamps" a transfer as genuine)
+  - the trusted-keys list
+  - the dashboard numbers
+  - the audio pack list
+
+  Venkat's existing types moved here unchanged, and his code still imports them from the same place.
+- **Validators (`shared/guards.ts`):** small checks that say "this message is valid" or exactly why not. For example: no private key ever goes out in the trusted-keys list, a reading word can't be fully read aloud (that would give away the answer), and a dashboard query can't ask for more than 24 months.
+- **Frozen examples (`fixtures/`):** for each contract, one good example and one bad example. A test checks that the good one passes and the bad one fails *for the right reason*. If anyone breaks a contract, the tests go red.
+- **API skeleton (`api/`):** the start of the school server. It runs on AWS Lambda later, and on your laptop now with `npm run api:dev`. Today it only answers `GET /health`.
+- **CI (`.github/workflows/ci.yml`):** GitHub now runs typecheck, tests and build on every pull request.
+- **Setup guide (`docs/SETUP.md`):** how to run everything on a fresh laptop.
+
+**This branch is built on Venkat's branch** (`venkat/teacher-workspace-transfer-dashboard`), because that's the app. Merge Venkat's PR first.
+
+**Checked:**
+- 52 tests pass (Venkat's 26 + 21 fixture tests + 5 API tests).
+- Typecheck and build pass.
+- `curl /health` → 200.
+
+**Not done here:** branch protection on `main`. Omkar's account isn't a repo admin, so Sai needs to switch it on. The steps are in the PR.
+
+---
+
+## 26 Nov 2026: Reset prepared (Omkar, task 00, PR "Task 00: reset", branch `chore/rebuild-reset`)
+
+**In simple terms:** the plan says to start the repo fresh. We prepared a pull request that removes all the old files (old skeleton app, submission PPT and mockups) and keeps only the plan.
+- **Nothing is lost:** the old state is saved on the branch `backup/pre-rebuild-c5e808c`.
+- **Not merged yet**, on purpose: judges may look at the repo during the 26–27 Nov pitch. Merge it after the pitch, then everyone rebases.
+
+---
+
 ## 24 Nov 2026: Cover slide filled in (Omkar)
 
 **In simple terms:** the PPT's first slide now shows our details.

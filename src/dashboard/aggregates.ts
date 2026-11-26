@@ -19,25 +19,9 @@ export interface TransferEvent {
   needsSupport: string[]; // skill IDs not mastered at transfer
 }
 
-export interface AggregateQuery {
-  fromMonth: string;
-  toMonth: string;
-  district?: string;
-  originLang?: LangCode;
-}
-
-/** null = suppressed small cohort. */
-export type Count = number | null;
-
-export interface AggregateResponse {
-  asOf: string;
-  coverage: { schoolsReporting: number; schoolsTotal: number };
-  totalTransfers: Count;
-  corridors: { from: LangCode; to: LangCode; count: Count }[];
-  skills: { skillId: string; count: Count }[];
-  byMonth: { month: string; count: Count }[];
-  suppressionThreshold: number;
-}
+// Moved to the shared contracts (task 02) so the API returns the same shape.
+import type { AggregateQuery, AggregateResponse, Count } from '../../shared/contracts';
+export type { AggregateQuery, AggregateResponse, Count };
 
 export interface AggregateSource {
   query(q: AggregateQuery): Promise<AggregateResponse>;
