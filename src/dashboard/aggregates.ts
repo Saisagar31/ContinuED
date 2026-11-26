@@ -21,14 +21,16 @@ export interface TransferEvent {
 
 // Moved to the shared contracts (task 02) so the API returns the same shape.
 import type { AggregateQuery, AggregateResponse, Count } from '../../shared/contracts';
+import { SUPPRESS_BELOW } from '../../shared/contracts';
 export type { AggregateQuery, AggregateResponse, Count };
 
 export interface AggregateSource {
   query(q: AggregateQuery): Promise<AggregateResponse>;
 }
 
-/** PLACEHOLDER — the school-approved suppression rule is an open decision (task 01). */
-export const SUPPRESS_BELOW = 5;
+/** PLACEHOLDER — the school-approved suppression rule is an open decision (task 01).
+ *  The value now lives in shared/contracts.ts so the API uses the same threshold. */
+export { SUPPRESS_BELOW };
 const suppress = (n: number): Count => (n > 0 && n < SUPPRESS_BELOW ? null : n);
 
 export function aggregate(events: TransferEvent[], q: AggregateQuery, schoolsTotal: number, asOf: string): AggregateResponse {

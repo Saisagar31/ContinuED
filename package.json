@@ -11,10 +11,14 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
     "api:dev": "tsx api/dev-server.ts",
-    "ci": "npm run typecheck && npm test && npm run build",
-    "content:review-sheets": "tsx scripts/content/review-sheets.ts"
+    "api:bundle": "esbuild api/src/lambda.ts --bundle --platform=node --target=node22 --format=cjs --outfile=api/dist/lambda.js && node -e \"require('fs').writeFileSync('api/dist/package.json', JSON.stringify({type:'commonjs'}))\"",
+    "ci": "npm run typecheck && npm test && npm run build"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "3.1178.0",
+    "@aws-sdk/client-kms": "3.1178.0",
+    "@aws-sdk/lib-dynamodb": "3.1178.0",
+    "aws-jwt-verify": "5.2.1",
     "idb": "8.0.0",
     "jsqr": "1.4.0",
     "qrcode": "1.5.4",
