@@ -4,6 +4,35 @@ A running diary of what's in this repo, written so anyone (teammates, judges, fu
 
 ---
 
+## 26 Nov 2026: The real assessment engine (task 06, built by Ramith for Sai to review, branch `ramith/06-assessment-engine`)
+
+**In simple terms:** the app now picks each next question based on how the child answered, instead of following a fixed script.
+- **Right on their own:** the child gets a harder question, then a different kind of question to confirm. Once there is enough evidence, the app moves to the next skill.
+- **Needed a hint:** another example at the same level, asked a different way.
+- **Wrong:** the app first checks the earlier skill this one depends on. If a child can't yet read numbers, the app won't test subtraction; it moves to the reading skills instead.
+- **Skipped:** a different question. After two skips the skill is left "undecided", never marked as failed.
+- **Fresh questions every time.** A child never sees a question they have seen before, even in a later session or in another language. If the questions run out, the app says so.
+- **The teacher sees why** each question was picked, in their own language.
+- **The question screen** now separates "say to the learner" from "show the learner". For reading tasks it reminds the teacher not to read the word aloud.
+- **Old stub removed** (`src/assess/stubEngine.ts`).
+
+**Checked:**
+- 127 tests pass, including 14 new engine tests built from the plan's acceptance list:
+  - different children follow different paths
+  - formats vary
+  - reassessment avoids seen questions
+  - "different question" isn't counted as an attempt
+  - running out of questions is handled
+  - the session limit stops the session
+  - a single answer never means "mastered"
+- Typecheck and build pass.
+
+**Not checked:**
+- A walk-through on a real phone.
+- The adaptation rules with real teachers (they are starting rules to pilot).
+
+---
+
 ## 26 Nov 2026: Skill map, question bank and seven language packs (Ramith, tasks 04 + 09, branch `ramith/04-09-content-language-packs`)
 
 **In simple terms:** the app now speaks all seven languages, and the questions it asks come from a real question bank instead of a placeholder. **Everything is a draft:** no educator or native speaker has checked it yet, and the app says so with a banner.

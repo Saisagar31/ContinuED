@@ -59,8 +59,14 @@ export const STOPPING = {
   maxItems: 16,
   /** Items on one skill before moving on. */
   maxItemsPerSkill: 4,
-  /** Consecutive skips on one skill before moving on (ability stays undecided). */
+  /** Skips on one skill (in total, not only consecutive) before moving on; ability stays undecided. */
   maxSkipsPerSkill: 2,
+  /**
+   * Items per strand (numeracy / literacy), so one strand cannot use up the whole
+   * session and leave the other untested. 16 items, 10 per strand: at least 6 are
+   * left for the other strand. Placeholder for educators (plan section 3, "Completion").
+   */
+  maxItemsPerStrand: 10,
   /** Suggested session length; the app shows it, the teacher decides. */
   targetMinutes: 20,
 } as const;

@@ -3,7 +3,7 @@ import QRCode from 'qrcode';
 import { useApp, useAsync, useWs } from '../app/context';
 import { ErrorBox, Loading, Notice, SkillLabel, StatusPill, fmtDate, localDate } from '../app/ui';
 import { LANG_NAMES, t } from '../content/i18n';
-import { summarise } from '../assess/stubEngine';
+import { summarise } from '../assess/engine';
 import { encodeCapsule, type TransferEnvelope } from '../transfer/capsule';
 
 export function TransferSlip({ sessionId }: { sessionId: string }) {

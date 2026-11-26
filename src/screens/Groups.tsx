@@ -3,7 +3,7 @@ import { Empty, Loading, SkillLabel } from '../app/ui';
 import { t } from '../content/i18n';
 import { skillText } from '../content/packs';
 import { SKILL_BY_ID } from '../content/skills';
-import { summarise } from '../assess/stubEngine';
+import { summarise } from '../assess/engine';
 import { groupByNextSkill } from '../plan/plan';
 import { decodeCapsule } from '../transfer/capsule';
 import { deviceTrustStore } from '../transfer/deviceTrust';

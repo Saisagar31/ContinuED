@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { go, useApp, useAsync, useWs } from '../app/context';
 import { Empty, ErrorBox, Loading, SkillLabel, StatusPill, fmtDate } from '../app/ui';
 import { CONTENT_VERSION, orderedSkills } from '../content/skills';
+import { RUBRIC_VERSION } from '../content/rubric';
 import { LANG_NAMES, t } from '../content/i18n';
 import { LANGS, type LangCode, type Session } from '../domain/types';
-import { summarise } from '../assess/stubEngine';
+import { summarise } from '../assess/engine';
 
 export function LearnerDetail({ id }: { id: string }) {
   const ws = useWs();
@@ -21,7 +22,7 @@ export function LearnerDetail({ id }: { id: string }) {
   const draft = sessions.find((s) => s.status === 'draft');
 
   async function start() {
-    const s = await ws.startSession(id, { assessmentLang: assessLang, contentVersion: CONTENT_VERSION });
+    const s = await ws.startSession(id, { assessmentLang: assessLang, contentVersion: CONTENT_VERSION, rubricVersion: RUBRIC_VERSION });
     go(`/assess/${s.id}`);
   }
 

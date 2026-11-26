@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { go, useApp, useWs } from '../app/context';
 import { ErrorBox, Loading, Notice, SkillLabel } from '../app/ui';
-import { LANG_NAMES, contentReviewed, t, type MsgKey } from '../content/i18n';
-import { nextItem } from '../assess/stubEngine';
-import type { Observation, Session, SkillStatus } from '../domain/types';
+import { LANG_NAMES, contentReviewed, skillName, t, type MsgKey } from '../content/i18n';
+import { nextItem, reasonText, whyStopped, type StopReason } from '../assess/engine';
+import type { Observation, PresentedItem, Session, SkillStatus } from '../domain/types';
 import type { Workspace } from '../store/db';
 
 const OBS_BUTTONS: { obs: Observation; label: MsgKey; hint: MsgKey }[] = [
@@ -25,10 +25,21 @@ export function Assess({ sessionId }: { sessionId: string }) {
   const ws = useWs();
   const { uiLang: L } = useApp();
   const [session, setSession] = useState<Session | null | undefined>(undefined);
-  const [exhausted, setExhausted] = useState(false);
+  const [stopped, setStopped] = useState<StopReason | null>(null);
+  /** Teacher chose to reuse questions from earlier sessions once unseen ones ran out. */
+  const [allowRepeats, setAllowRepeats] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const presenting = useRef(false);
+
+  /** Next item, or the reason the session stops. */
+  async function decide(s: Session, repeats: boolean, alternative = false): Promise<PresentedItem | undefined> {
+    const { seen, prior } = await context(ws, s);
+    const across = repeats ? new Set<string>() : seen;
+    const item = nextItem(s, across, prior, alternative);
+    if (!item && !alternative) setStopped(whyStopped(s, across, prior));
+    return item;
+  }
 
   useEffect(() => {
     let live = true;
@@ -39,13 +50,8 @@ export function Assess({ sessionId }: { sessionId: string }) {
       if (s.status === 'completed') return go(`/transfer/${s.id}`);
       if (!s.current && !presenting.current) {
         presenting.current = true;
-        const { seen, prior } = await context(ws, s);
-        const item = nextItem(s, seen, prior);
-        if (!item) {
-          setExhausted(true);
-          setSession(s);
-          return;
-        }
+        const item = await decide(s, false);
+        if (!item) return setSession(s);
         // Persist BEFORE display so a restart resumes this exact question.
         const saved = await ws.present(s.id, item);
         if (live) setSession(saved);
@@ -70,11 +76,8 @@ export function Assess({ sessionId }: { sessionId: string }) {
     try {
       const attempt = { ...item, observation: obs, answeredAt: new Date().toISOString() };
       const after = { ...session, attempts: [...session.attempts, attempt], current: undefined };
-      const { seen, prior } = await context(ws, session);
-      const next = nextItem(after, seen, prior);
-      const saved = await ws.commitAttempt(session.id, attempt, next);
-      setSession(saved);
-      if (!next) setExhausted(true);
+      const next = await decide(after, allowRepeats);
+      setSession(await ws.commitAttempt(session.id, attempt, next));
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -83,12 +86,33 @@ export function Assess({ sessionId }: { sessionId: string }) {
   }
 
   async function alternative() {
-    if (!session || !item) return;
-    const { seen, prior } = await context(ws, session);
-    const alt = nextItem(session, seen, prior, true);
-    if (!alt) return setError(t(L, 'assess.noAlt'));
-    setSession(await ws.present(session.id, alt));
+    if (!session || !item || busy) return;
+    setBusy(true);
+    try {
+      const alt = await decide(session, allowRepeats, true);
+      if (!alt) return setError(t(L, 'assess.noAlt'));
+      setSession(await ws.replaceCurrent(session.id, alt));
+    } finally {
+      setBusy(false);
+    }
   }
+
+  async function useEarlierQuestions() {
+    if (!session || busy) return;
+    setBusy(true);
+    try {
+      setAllowRepeats(true);
+      const next = await decide(session, true);
+      if (next) {
+        setStopped(null);
+        setSession(await ws.present(session.id, next));
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const answered = session.attempts.length > 0;
 
   return (
     <div className="stack assess">
@@ -103,16 +127,24 @@ export function Assess({ sessionId }: { sessionId: string }) {
         <Notice kind="warn">{t(L, 'assess.draftLang', { lang: LANG_NAMES[session.assessmentLang].native })}</Notice>
       )}
 
-      {item && !exhausted ? (
+      {item ? (
         <>
           <section className="card question" aria-live="polite">
             <div className="muted small"><SkillLabel id={item.skillId} lang={L} /> · {t(L, 'assess.level', { n: item.band })}</div>
+            <div className="small muted">{t(L, 'assess.say')}</div>
             <p className="prompt" lang={session.assessmentLang}>{item.prompt}</p>
+            {item.stimulus && (
+              <>
+                <div className="small muted">{t(L, 'assess.show')}</div>
+                <p className="stimulus big" lang={session.assessmentLang}>{item.stimulus}</p>
+                {item.skillId.startsWith('lit.') && <p className="small">{t(L, 'assess.noAudioStimulus')}</p>}
+              </>
+            )}
             <details>
               <summary>{t(L, 'assess.expected')}</summary>
               <p className="mono" lang={session.assessmentLang}>{item.expected}</p>
             </details>
-            <p className="small muted">{t(L, 'assess.why', { reason: item.selectionReason })}</p>
+            <p className="small muted">{t(L, 'assess.why', { reason: reasonText(L, item.selectionReason) })}</p>
           </section>
           <div className="obs-grid" role="group" aria-label={t(L, 'assess.record')}>
             {OBS_BUTTONS.map((b) => (
@@ -124,16 +156,37 @@ export function Assess({ sessionId }: { sessionId: string }) {
           </div>
           <div className="row">
             <button onClick={alternative} disabled={busy}>{t(L, 'assess.different')}</button>
-            {session.attempts.length > 0 && <button onClick={() => go(`/review/${session.id}`)}>{t(L, 'assess.finish')}</button>}
+            {answered && <button onClick={() => go(`/review/${session.id}`)}>{t(L, 'assess.finish')}</button>}
           </div>
         </>
       ) : (
         <section className="card stack">
-          <h2>{session.attempts.length ? t(L, 'assess.ready') : t(L, 'assess.none')}</h2>
-          <p>{session.attempts.length ? t(L, 'assess.readyHint') : t(L, 'assess.noneHint')}</p>
-          {session.attempts.length > 0 && <button className="primary" onClick={() => go(`/review/${session.id}`)}>{t(L, 'assess.review')}</button>}
+          <StopMessage reason={stopped} answered={answered} />
+          {stopped?.kind === 'exhausted' && !allowRepeats && (
+            <button onClick={useEarlierQuestions} disabled={busy}>{t(L, 'assess.allowRepeats')}</button>
+          )}
+          {answered && <button className="primary" onClick={() => go(`/review/${session.id}`)}>{t(L, 'assess.review')}</button>}
         </section>
       )}
     </div>
+  );
+}
+
+function StopMessage({ reason, answered }: { reason: StopReason | null; answered: boolean }) {
+  const { uiLang: L } = useApp();
+  if (reason?.kind === 'version_mismatch') return <p>{t(L, 'assess.versionMismatch', { cv: reason.sessionVersion, mine: reason.installedVersion })}</p>;
+  if (reason?.kind === 'all_mastered') return <p>{t(L, 'assess.allMastered')}</p>;
+  if (reason?.kind === 'exhausted')
+    return (
+      <>
+        <h2>{answered ? t(L, 'assess.ready') : t(L, 'assess.none')}</h2>
+        <p>{t(L, 'assess.exhausted', { skills: reason.skills.map((s) => skillName(L, s)).join(', ') })}</p>
+      </>
+    );
+  return (
+    <>
+      <h2>{answered ? t(L, 'assess.ready') : t(L, 'assess.none')}</h2>
+      <p>{answered ? t(L, 'assess.readyHint') : t(L, 'assess.noneHint')}</p>
+    </>
   );
 }
