@@ -50,6 +50,8 @@ aws cognito-idp admin-add-user-to-group --user-pool-id <UserPoolId> --username t
 
 `school_id` and `district` may only contain letters, digits, `_` and `-` (up to 64 characters). The API returns 403 for anything else.
 
+**How the PWA signs in.** `src/auth/cognito.ts` uses the `USER_PASSWORD_AUTH` flow, so the app client allows `ALLOW_USER_PASSWORD_AUTH` (plus `ALLOW_USER_SRP_AUTH` and `ALLOW_REFRESH_TOKEN_AUTH`). With this flow the browser sends the password itself to Cognito, protected only by TLS. That is acceptable for the pilot. Moving the client to SRP (the password never leaves the phone) is a later hardening option; once it is done, remove `ALLOW_USER_PASSWORD_AUTH`. New users created with `admin-create-user` get a temporary password and must choose a new one at first sign-in (the app handles this `NEW_PASSWORD_REQUIRED` step). Users who have set up an authenticator app get the `SOFTWARE_TOKEN_MFA` step. The app cannot do authenticator *setup* (`MFA_SETUP`) yet, so MFA stays `OPTIONAL`. Keep refresh-token rotation off: Cognito does not accept `REFRESH_TOKEN_AUTH` when rotation is on.
+
 ## Publish the trust list
 
 The trust list holds the issuer's **public** key as a JWK, its validity window, and any revoked kids. `GET /trust` serves it to signed-in devices, which keep it for offline verification.
