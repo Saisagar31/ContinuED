@@ -1,0 +1,1 @@
+{"_note":"Fails: not a capsule head (contains the check part).","_expect":"bad format","head":"CED1.abc.-.12345678"}

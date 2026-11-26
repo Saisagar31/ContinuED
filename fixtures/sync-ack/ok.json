@@ -1,0 +1,1 @@
+{"_note":"Each submitted ID appears in exactly one list.","accepted":["EV-0001-AAAA"],"duplicate":["EV-0000-ZZZZ"],"rejected":[{"eventId":"EV-0003-CCCC","reason":"event.summary: needs at least 1"}],"asOf":"2026-11-20T09:30:02Z"}

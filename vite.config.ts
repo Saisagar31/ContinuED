@@ -7,6 +7,6 @@ export default defineConfig({
   server: { port: 5173, host: true },
   test: {
     environment: 'node',
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'shared/**/*.test.ts', 'fixtures/**/*.test.ts', 'api/**/*.test.ts', 'scripts/**/*.test.ts'],
   },
 });

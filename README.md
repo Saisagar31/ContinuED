@@ -2,42 +2,30 @@
 
 **Learning that travels with the child.** wHACKiest 2026 · Track 04 (UnlockED)
 
-> 🚧 **Work in progress.** This repo is a skeleton with shared contracts. The working core MVP is due 26 Nov 2026. Features below marked *planned* are not built yet.
+> 🚧 **Work in progress.** We're rebuilding to [`docs/PROJECT_EXECUTION_PLAN.md`](docs/PROJECT_EXECUTION_PLAN.md). Everything uses **synthetic learners and sample content**. Nothing is educator-approved or piloted yet.
 
-## The problem
-When migrant families move between states, their children change schools and often languages. The new teacher has no record of what the child can already do, so the child is placed at the wrong level and can fall behind.
-
-## The solution
-An offline **learning passport in a QR code**:
-1. **Check:** the old school's teacher marks 8 foundational reading and maths skills.
-2. **Seal:** the app packs the results into a small, tamper-evident QR code. It holds no name, only an ID like `TC-4821`.
-3. **Carry:** the family carries the QR on paper or a phone.
-4. **Scan:** the new teacher opens it **without internet**, in **their own language**.
-5. **Teach:** the app shows the child's **root bottleneck** and a **"Start Here Tomorrow"** plan.
-
-## Architecture
-| Part | Tech | Status |
-|---|---|---|
-| App | React + TypeScript + Vite + Tailwind CSS | Skeleton |
-| QR code + compression | `qrcode.react`, `lz-string` | Planned (MVP) |
-| Tamper-evident seal | Web Crypto HMAC-SHA256 | Planned (MVP) |
-| Languages | English, Marathi, Kannada | Planned (MVP) |
-| Voice | Device voice → ElevenLabs clips stored in the app | Planned |
-| Works offline | Progressive Web App (PWA) | Planned |
-| Anonymous sync + district dashboard | AWS Lambda Function URL + DynamoDB | Planned |
-
-**Privacy:** no names or personal data are stored or sent. The seal is *tamper-evident*: it detects edited marks. Signatures issued by state education departments are on the roadmap.
+## What it does
+1. **Assess:** the origin teacher assesses a learner on foundational reading and maths skills, in the learner's language.
+2. **Transfer:** the result travels as a QR code or printed slip (`CED1.…`). It holds a pseudonymous ID, never a name.
+3. **Receive:** the destination teacher opens it **offline**, in their own language, and gets a lesson plan for tomorrow.
+4. **Sync and see trends** *(in progress)*: schools sync de-identified records when they're online, and leads see aggregate transfer and skill trends.
 
 ## Run it
-Requires **Node.js 22.6+** and git.
-```bash
-git clone https://github.com/Saisagar31/ContinuED.git
-cd ContinuED
-npm install
-npm run dev
-```
+See [`docs/SETUP.md`](docs/SETUP.md). In short: `npm ci`, then `npm run dev` (app), `npm run api:dev` (API) and `npm test`.
+
+## Status by task (plan section 4)
+| Task | Owner | Status |
+|---|---|---|
+| 00 Reset | Omkar | PR ready. Merging waits until after the pitch. |
+| 02 Foundation, CI, contracts | Omkar | This branch |
+| 03 / 07 / 08 / 12 App screens, workspace, transfer, dashboard | Venkat (+ Sai, Omkar) | Built with sample data. Needs device testing. |
+| 04 / 09 Content and 7 language packs | Ramith + educators + reviewers | Sample content only |
+| 05 / 10 Accounts, ElevenLabs audio | Ramith + Omkar | Not started. Needs project accounts. |
+| 06 Assessment engine | Sai | Stub engine in place |
+| 11 School services | Omkar + Ramith | In progress |
+| 13–15 Staging, pilot, production | Team | Not started |
+
+What changed and why is explained in plain English in [`docs/WHAT_WE_BUILT.md`](docs/WHAT_WE_BUILT.md).
 
 ## Team
-Omkar · Saisagar · Venkat · Ramith
-
-
+Sai Sagar (lead) · Omkar Tonne · Venkat Vaishnav · Ramith Nayak, Ramaiah Institute of Technology
