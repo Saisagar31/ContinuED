@@ -124,23 +124,28 @@ export function fixtureSource(opts: { events?: TransferEvent[]; failWhenOffline?
 
 const CACHE_KEY = 'continued.dashboard.cache.v1';
 
-export function cacheKey(q: AggregateQuery) {
-  return JSON.stringify([q.fromMonth, q.toMonth, q.district ?? '', q.originLang ?? '']);
+/**
+ * `scope` keeps different data sources apart in the offline cache (practice data
+ * vs. one teacher's school data), so a saved copy is never shown as the other.
+ */
+export function cacheKey(q: AggregateQuery, scope = '') {
+  const k = JSON.stringify([q.fromMonth, q.toMonth, q.district ?? '', q.originLang ?? '']);
+  return scope ? `${scope}|${k}` : k;
 }
 
-export function readCache(q: AggregateQuery): AggregateResponse | null {
+export function readCache(q: AggregateQuery, scope = ''): AggregateResponse | null {
   try {
     const all = JSON.parse(localStorage.getItem(CACHE_KEY) ?? '{}');
-    return all[cacheKey(q)] ?? null;
+    return all[cacheKey(q, scope)] ?? null;
   } catch {
     return null;
   }
 }
 
-export function writeCache(q: AggregateQuery, r: AggregateResponse) {
+export function writeCache(q: AggregateQuery, r: AggregateResponse, scope = '') {
   try {
     const all = JSON.parse(localStorage.getItem(CACHE_KEY) ?? '{}');
-    all[cacheKey(q)] = r;
+    all[cacheKey(q, scope)] = r;
     localStorage.setItem(CACHE_KEY, JSON.stringify(all));
   } catch {
     /* storage unavailable — dashboard still works online */

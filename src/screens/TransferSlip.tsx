@@ -5,10 +5,13 @@ import { ErrorBox, Loading, Notice, SkillLabel, StatusPill, fmtDate, localDate }
 import { LANG_NAMES, t } from '../content/i18n';
 import { summarise } from '../assess/engine';
 import { encodeCapsule, type TransferEnvelope } from '../transfer/capsule';
+import { deviceTrustStore } from '../transfer/deviceTrust';
+import { currentIssuerKid, serverSigner } from '../transfer/serverSigner';
+import { API_URL, record, transferIssuedEvent, webFetch } from '../app/services';
 
 export function TransferSlip({ sessionId }: { sessionId: string }) {
   const ws = useWs();
-  const { uiLang: L } = useApp();
+  const { uiLang: L, online, staff, staffState } = useApp();
   const canvas = useRef<HTMLCanvasElement>(null);
   const [copied, setCopied] = useState(false);
   const [qrError, setQrError] = useState('');
@@ -27,8 +30,23 @@ export function TransferSlip({ sessionId }: { sessionId: string }) {
       cv: s.contentVersion,
       s: summarise(s),
     };
-    return { env, code: await encodeCapsule(env) };
-  }, [sessionId]);
+    // School-verified issuance when online and signed in; otherwise (or if signing fails) the
+    // unsigned slip, which the receiving phone labels "issuer unverified" (plan section 3, "Issuer trust").
+    let signed: 'yes' | 'no' | 'failed' = 'no';
+    let code: string | undefined;
+    const kid = API_URL && staff && online && staffState.status === 'signed_in' ? currentIssuerKid(deviceTrustStore()) : undefined;
+    if (kid && API_URL && staff) {
+      try {
+        code = await encodeCapsule(env, serverSigner({ apiUrl: API_URL, kid, getToken: staff.getToken, fetch: webFetch }));
+        signed = 'yes';
+      } catch {
+        signed = 'failed';
+      }
+    }
+    code ??= await encodeCapsule(env);
+    void record(transferIssuedEvent(env.tid, env.lp, env.ol, env.cv, env.s), staff);
+    return { env, code, signed };
+  }, [sessionId, staffState.status]);
 
   useEffect(() => {
     if (!data.data || !canvas.current) return;
@@ -38,7 +56,7 @@ export function TransferSlip({ sessionId }: { sessionId: string }) {
   if (data.loading && !data.data) return <Loading label={t(L, 'slip.building')} />;
   if (data.error) return <ErrorBox title={t(L, 'slip.errBuild')}>{data.error.message}</ErrorBox>;
   if (!data.data) return <ErrorBox title={t(L, 'slip.notCompleted')}><a href={`#/assess/${sessionId}`}>{t(L, 'slip.resume')}</a></ErrorBox>;
-  const { env, code } = data.data;
+  const { env, code, signed } = data.data;
 
   async function copy() {
     try {
@@ -72,7 +90,12 @@ export function TransferSlip({ sessionId }: { sessionId: string }) {
               {t(L, 'slip.assessed', { date: fmtDate(env.ad), lang: langLabel })}
               {env.age ? ` · ${t(L, 'common.age', { age: env.age })}` : ''} · {t(L, 'slip.content', { v: env.cv })}
             </div>
-            <div className="trust trust-unverified">{t(L, 'slip.unverified')}</div>
+            {signed === 'yes' ? (
+              <div className="trust trust-verified">{t(L, 'slip.signed')}</div>
+            ) : (
+              <div className="trust trust-unverified">{t(L, 'slip.unverified')}</div>
+            )}
+            {signed === 'failed' && <p className="small no-print">{t(L, 'slip.signFailed')}</p>}
           </div>
         </div>
         <div className="qr-wrap">

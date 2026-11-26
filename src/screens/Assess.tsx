@@ -5,6 +5,9 @@ import { LANG_NAMES, contentReviewed, skillName, t, type MsgKey } from '../conte
 import { nextItem, reasonText, whyStopped, type StopReason } from '../assess/engine';
 import type { Observation, PresentedItem, Session, SkillStatus } from '../domain/types';
 import type { Workspace } from '../store/db';
+import { activePack } from '../audio/packManager';
+import { availabilityFor, playFor, type Availability } from '../audio/player';
+import type { LangCode } from '../domain/types';
 
 const OBS_BUTTONS: { obs: Observation; label: MsgKey; hint: MsgKey }[] = [
   { obs: 'independent', label: 'obs.independent', hint: 'obs.independentHint' },
@@ -12,6 +15,14 @@ const OBS_BUTTONS: { obs: Observation; label: MsgKey; hint: MsgKey }[] = [
   { obs: 'incorrect', label: 'obs.incorrect', hint: 'obs.incorrectHint' },
   { obs: 'skipped', label: 'obs.skipped', hint: 'obs.skippedHint' },
 ];
+
+/** Approved clip IDs in the installed pack for `lang`, so the engine can prefer recorded items. */
+async function clipCheck(lang: LangCode): Promise<((id: string) => boolean) | undefined> {
+  const m = await activePack(lang);
+  if (!m) return undefined;
+  const ok = new Set(m.clips.filter((c) => c.reviewStatus === 'approved').map((c) => c.contentId));
+  return (id) => ok.has(id);
+}
 
 async function context(ws: Workspace, s: Session) {
   const others = (await ws.sessions(s.learnerId)).filter((x) => x.id !== s.id);
@@ -36,7 +47,7 @@ export function Assess({ sessionId }: { sessionId: string }) {
   async function decide(s: Session, repeats: boolean, alternative = false): Promise<PresentedItem | undefined> {
     const { seen, prior } = await context(ws, s);
     const across = repeats ? new Set<string>() : seen;
-    const item = nextItem(s, across, prior, alternative);
+    const item = nextItem(s, across, prior, alternative, { hasClip: await clipCheck(s.assessmentLang) });
     if (!item && !alternative) setStopped(whyStopped(s, across, prior));
     return item;
   }
@@ -133,6 +144,7 @@ export function Assess({ sessionId }: { sessionId: string }) {
             <div className="muted small"><SkillLabel id={item.skillId} lang={L} /> · {t(L, 'assess.level', { n: item.band })}</div>
             <div className="small muted">{t(L, 'assess.say')}</div>
             <p className="prompt" lang={session.assessmentLang}>{item.prompt}</p>
+            {item.audio && item.audio !== 'none' && <PlayInstruction lang={session.assessmentLang} contentId={item.audioContentId ?? item.itemId} text={item.prompt} />}
             {item.stimulus && (
               <>
                 <div className="small muted">{t(L, 'assess.show')}</div>
@@ -188,5 +200,25 @@ function StopMessage({ reason, answered }: { reason: StopReason | null; answered
       <h2>{answered ? t(L, 'assess.ready') : t(L, 'assess.none')}</h2>
       <p>{answered ? t(L, 'assess.readyHint') : t(L, 'assess.noneHint')}</p>
     </>
+  );
+}
+
+/** Plays the spoken instruction: reviewed clip if installed, else the phone voice; hidden when neither exists. */
+function PlayInstruction({ lang, contentId, text }: { lang: LangCode; contentId: string; text: string }) {
+  const { uiLang: L } = useApp();
+  const [avail, setAvail] = useState<Availability>('text_only');
+  useEffect(() => {
+    let live = true;
+    void availabilityFor(lang, contentId).then((a) => live && setAvail(a));
+    return () => {
+      live = false;
+    };
+  }, [lang, contentId]);
+  if (avail === 'text_only') return null;
+  return (
+    <button className="small" onClick={() => void playFor(lang, contentId, text).then(setAvail)}>
+      {t(L, 'assess.play')}
+      {avail === 'device_speech' ? ` · ${t(L, 'oral.deviceSpeech')}` : ''}
+    </button>
   );
 }

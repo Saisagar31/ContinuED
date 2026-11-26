@@ -1,6 +1,10 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createCognitoClient } from '../auth/cognito';
+import { createStaffSession, type SessionState, type StaffSession } from '../auth/session';
 import type { LangCode } from '../domain/types';
 import type { Workspace } from '../store/db';
+import { getSyncStatus, onSyncStatus, pending, type SyncStatus } from '../sync/outbox';
+import { AUTH_CONFIG, syncNow, webFetch } from './services';
 
 interface AppState {
   ws: Workspace | null;
@@ -8,6 +12,12 @@ interface AppState {
   uiLang: LangCode;
   setUiLang(l: LangCode): void;
   online: boolean;
+  /** School sign-in for the open teacher profile; null when this build has no school services. */
+  staff: StaffSession | null;
+  staffState: SessionState;
+  sync: SyncStatus;
+  /** Events still on this phone (not yet acknowledged by the school). */
+  pendingCount: number;
 }
 
 const Ctx = createContext<AppState | null>(null);
@@ -32,6 +42,45 @@ export function AppProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('offline', off);
     };
   }, []);
+  // One staff session per open teacher profile; switching teacher drops in-memory tokens.
+  const [staff, setStaff] = useState<StaffSession | null>(null);
+  const [staffState, setStaffState] = useState<SessionState>({ status: 'signed_out' });
+  useEffect(() => {
+    if (!ws || !AUTH_CONFIG) {
+      setStaff(null);
+      setStaffState({ status: 'signed_out' });
+      return;
+    }
+    const s = createStaffSession({
+      teacherId: ws.teacherId,
+      client: createCognitoClient({ region: AUTH_CONFIG.region, clientId: AUTH_CONFIG.clientId, fetch: webFetch }),
+      apiUrl: AUTH_CONFIG.apiUrl,
+      fetch: webFetch,
+    });
+    const off = s.onChange(setStaffState);
+    void s.load().then(setStaffState);
+    setStaff(s);
+    return () => {
+      off();
+      s.dispose();
+    };
+  }, [ws?.teacherId]);
+
+  // Sync status, pending count, and a sync attempt whenever the phone comes online or the teacher signs in.
+  const [sync, setSync] = useState<SyncStatus>(getSyncStatus());
+  const [pendingCount, setPendingCount] = useState(0);
+  useEffect(() => {
+    const refresh = () => void pending().then((p) => setPendingCount(p.filter((e) => !e.rejectedReason).length), () => undefined);
+    refresh();
+    return onSyncStatus((st) => {
+      setSync(st);
+      refresh();
+    });
+  }, []);
+  useEffect(() => {
+    if (online && staffState.status === 'signed_in') void syncNow(staff);
+  }, [online, staffState.status, staff]);
+
   const setUiLang = (l: LangCode) => {
     setUiLangState(l);
     try {
@@ -40,7 +89,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       /* ignore */
     }
   };
-  return <Ctx.Provider value={{ ws, setWs, uiLang, setUiLang, online }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ ws, setWs, uiLang, setUiLang, online, staff, staffState, sync, pendingCount }}>{children}</Ctx.Provider>;
 }
 
 export function useApp() {

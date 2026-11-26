@@ -4,6 +4,27 @@ A running diary of what's in this repo, written so anyone (teammates, judges, fu
 
 ---
 
+## 26 Nov 2026: Everything connected: one app from question to dashboard (Ramith, integration, branch `ramith/integration`)
+
+**In simple terms:** until now each teammate's part worked on its own branch. This joins them, so the app does the plan's whole journey. The online parts switch on only when the school services are set up; with nothing set up, the app works fully offline as before.
+- **School sign-in** (Omkar's #12) has a "School" link in the top bar. Each teacher on a shared phone has their own sign-in.
+- **Signed transfer slips:** when a teacher is online and signed in, the slip is stamped by the school's key, and the receiving phone shows "verified". If that isn't possible, the slip is unsigned as before and says so.
+- **Sync:** finishing an assessment, giving out a slip and receiving one each queue an anonymous record on the phone. Records are sent when online and signed in, each counted once. A line at the top says what is waiting and what to do.
+- **Trends** show the school's real numbers when signed in, and practice data otherwise. Saved copies of the two are never mixed up.
+- **Audio:** a new "Audio" screen downloads each language's recordings once. The question screen and the oral check then play the reviewed recording, fall back to the phone's voice, or say that there is none. The question picker prefers questions that have a recording.
+- **Sign-in screen in all 7 languages:** its 43 messages moved into the language packs, plus 24 new ones. That is 303 interface strings per language now.
+- **`docs/PLAN_STATUS.md`:** task-by-task status of the execution plan and the merge order.
+
+**Checked:**
+- All tests pass, including new checks that the app's sync records pass the server's own validator and that nothing is stored when sync is off.
+- Typecheck and build pass.
+
+**Not checked:**
+- A browser or a phone.
+- Real AWS, Cognito or ElevenLabs. None exist yet.
+
+---
+
 ## 26 Nov 2026: Audio tool now reads all seven language packs (Omkar, task 10, branch `omkar/10b-audio-from-packs`)
 
 **In simple terms:** the tool that makes voice recordings used to know only the old English sample. Now it reads Ramith's seven language packs and lists every line the app may say out loud in each language.
