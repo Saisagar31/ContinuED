@@ -101,6 +101,13 @@ export interface AggregateQuery {
   originLang?: LangCode;
 }
 
+/**
+ * Counts greater than 0 and below this are reported as null (suppressed).
+ * PLACEHOLDER — the school-approved suppression rule is an open decision (task 01).
+ * Shared so the API (task 11) and src/dashboard/aggregates.ts use the same value.
+ */
+export const SUPPRESS_BELOW = 5;
+
 /** null = suppressed small cohort. */
 export type Count = number | null;
 

@@ -2,8 +2,8 @@
  * AWS Lambda entry point for an API Gateway HTTP API (payload format 2.0).
  * Only the fields we use are typed here, so no extra type package is needed.
  */
-import type { ApiRequest } from './http';
-import { createRouter } from './router';
+import { buildApp } from './app';
+import type { ApiRequest, Handler } from './http';
 
 interface HttpApiEventV2 {
   rawPath: string;
@@ -14,7 +14,13 @@ interface HttpApiEventV2 {
   requestContext: { http: { method: string } };
 }
 
-const route = createRouter();
+// Built on first request (not at import), from the Lambda environment. A config
+// error fails that request with a generic 500 and is logged; it is retried next time.
+let route: Handler | undefined;
+function getRoute(): Handler {
+  if (!route) route = buildApp(process.env);
+  return route;
+}
 
 export async function handler(event: HttpApiEventV2) {
   let body: unknown;
@@ -35,7 +41,13 @@ export async function handler(event: HttpApiEventV2) {
     headers,
     body,
   };
-  const res = await route(req);
+  let res;
+  try {
+    res = await getRoute()(req);
+  } catch (e) {
+    console.error('startup', e);
+    return { statusCode: 500, headers: { 'content-type': 'application/json' }, body: JSON.stringify({ error: 'internal' }) };
+  }
   return {
     statusCode: res.status,
     headers: { 'content-type': 'application/json', ...res.headers },
