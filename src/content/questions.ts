@@ -25,8 +25,13 @@ import { BANDS, OFFLINE_TARGETS, type Band } from './rubric';
 export type AudioPolicy = ContentItem['audio'];
 
 export interface QuestionItem {
-  /** Canonical identity for repeat protection. */
+  /**
+   * Canonical identity for repeat protection. Shared by formats that use the same
+   * operands or the same authored stimulus, so they count as one exposure.
+   */
   itemId: string;
+  /** Unique, stable ID of this exact question (family + variant key): the ContentPack itemId. */
+  contentItemId: string;
   familyId: string;
   skillId: SkillId;
   band: Band;
@@ -41,7 +46,7 @@ export interface QuestionItem {
   audio: AudioPolicy;
   /** Exact text an approved clip for this item must contain ('' when audio is 'none'). */
   spoken: string;
-  /** Clip lookup ID: shared per family when the instruction never changes. */
+  /** Clip lookup ID: one per family when the instruction never changes, else the contentItemId. */
   audioContentId: string;
 }
 
@@ -122,6 +127,16 @@ function findChoices(words: string[], w: string): string[] {
   const all = [w, ...others];
   const r = i % 3;
   return [...all.slice(r), ...all.slice(0, r)];
+}
+
+/** Stable keys "<band>.<index>" for a band of an authored list. */
+const litKeys = <T>(lists: [T[], T[]], band: Band) => lists[band - 1].map((_, i) => `${band}.${i}`);
+/** The authored entry for a "<band>.<index>" key. */
+function at<T>(lists: [T[], T[]], key: string): T {
+  const [b, i] = key.split('.').map(Number);
+  const x = lists[b - 1]?.[i];
+  if (x === undefined) throw new Error(`No literacy stimulus ${key}`);
+  return x;
 }
 
 // ---------------------------------------------------------------------------
@@ -252,48 +267,65 @@ export const FAMILIES: Family[] = [
       return { prompt: q(l, 'fr.share', { n, k: kk }), expected: String(n / kk) };
     },
   },
+  // Literacy keys are stable positions "<band>.<index>" into the pack's lists, not the text itself,
+  // so a reviewer's spelling fix cannot reset repeat protection. Pack lists are append-only.
   // Initial sounds (the spoken word is the task, so it may be voiced)
   {
     id: 'is.ask', skillId: 'lit.initial_sounds', bands: [1, 2], audio: 'full', template: 'is.ask',
-    keys: (b, l) => lit(l).sounds[b - 1].map((x) => x.w),
+    keys: (b, l) => litKeys(lit(l).sounds, b),
     identity: (k, l) => `lit.initial_sounds:${l}:${k}`,
-    render: (k, b, l) => ({ prompt: q(l, 'is.ask', { w: k }), expected: lit(l).sounds[b - 1].find((x) => x.w === k)!.s }),
+    render: (k, _b, l) => {
+      const s = at(lit(l).sounds, k);
+      return { prompt: q(l, 'is.ask', { w: s.w }), expected: s.s };
+    },
   },
   {
     id: 'is.same', skillId: 'lit.initial_sounds', bands: [1, 2], audio: 'full', template: 'is.same',
-    keys: (b, l) => lit(l).sounds[b - 1].map((x) => x.w),
+    keys: (b, l) => litKeys(lit(l).sounds, b),
     identity: (k, l) => `lit.initial_sounds:${l}:${k}`,
-    render: (k, b, l) => ({ prompt: q(l, 'is.same', { w: k }), expected: q(l, 'is.sameAns', { s: lit(l).sounds[b - 1].find((x) => x.w === k)!.s }) }),
+    render: (k, _b, l) => {
+      const s = at(lit(l).sounds, k);
+      return { prompt: q(l, 'is.same', { w: s.w }), expected: q(l, 'is.sameAns', { s: s.s }) };
+    },
   },
   // Word decoding (the word is never voiced)
   {
     id: 'dc.read', skillId: 'lit.decoding', bands: [1, 2], audio: 'instruction', template: 'dc.read',
-    keys: (b, l) => lit(l).words[b - 1],
+    keys: (b, l) => litKeys(lit(l).words, b),
     identity: (k, l) => `lit.decoding:${l}:${k}`,
-    render: (k, _b, l) => ({ prompt: q(l, 'dc.read'), stimulus: k, expected: k }),
+    render: (k, _b, l) => {
+      const w = at(lit(l).words, k);
+      return { prompt: q(l, 'dc.read'), stimulus: w, expected: w };
+    },
   },
   {
     // The teacher says the target word; the learner finds it among three written words.
     // No app audio, so a clip can never read out the target in place of the teacher.
     id: 'dc.find', skillId: 'lit.decoding', bands: [1, 2], audio: 'none', template: 'dc.find',
-    keys: (b, l) => lit(l).words[b - 1],
+    keys: (b, l) => litKeys(lit(l).words, b),
     identity: (k, l) => `lit.decoding:${l}:${k}`,
-    render: (k, b, l) => ({ prompt: q(l, 'dc.find', { w: k }), stimulus: findChoices(lit(l).words[b - 1], k).join('   '), expected: k }),
+    render: (k, b, l) => {
+      const w = at(lit(l).words, k);
+      return { prompt: q(l, 'dc.find', { w }), stimulus: findChoices(lit(l).words[b - 1], w).join('   '), expected: w };
+    },
   },
   // Short-sentence reading (the sentence is never voiced)
   {
     id: 'sr.read', skillId: 'lit.sentence_reading', bands: [1, 2], audio: 'instruction', template: 'sr.read',
-    keys: (b, l) => lit(l).sentences[b - 1].map((s) => s.text),
+    keys: (b, l) => litKeys(lit(l).sentences, b),
     identity: (k, l) => `lit.sentence_reading:${l}:${k}`,
-    render: (k, _b, l) => ({ prompt: q(l, 'sr.read'), stimulus: k, expected: q(l, 'sr.readAns') }),
+    render: (k, _b, l) => ({ prompt: q(l, 'sr.read'), stimulus: at(lit(l).sentences, k).text, expected: q(l, 'sr.readAns') }),
   },
   {
-    id: 'sr.comp', skillId: 'lit.sentence_reading', bands: [1, 2], audio: 'instruction', template: 'sr.comp',
-    keys: (b, l) => lit(l).sentences[b - 1].map((s) => s.text),
+    // The comprehension question repeats words from the sentence, so voicing it before the
+    // child reads would give the reading away. The teacher asks it after the reading:
+    // no app audio until educators decide otherwise.
+    id: 'sr.comp', skillId: 'lit.sentence_reading', bands: [1, 2], audio: 'none', template: 'sr.comp',
+    keys: (b, l) => litKeys(lit(l).sentences, b),
     identity: (k, l) => `lit.sentence_reading:${l}:${k}`,
-    render: (k, b, l) => {
-      const s = lit(l).sentences[b - 1].find((x) => x.text === k)!;
-      return { prompt: q(l, 'sr.comp', { q: s.q }), stimulus: k, expected: s.a };
+    render: (k, _b, l) => {
+      const s = at(lit(l).sentences, k);
+      return { prompt: q(l, 'sr.comp', { q: s.q }), stimulus: s.text, expected: s.a };
     },
   },
 ];
@@ -309,9 +341,11 @@ export function buildItem(familyId: string, key: string, band: Band, lang: LangC
   if (!f) throw new Error(`Unknown question family ${familyId}`);
   const r = f.render(key, band, lang);
   const itemId = f.identity(key, lang);
+  const contentItemId = `${f.id}:${key}`;
   const fixedInstruction = placeholders(pack(lang).q[f.template]).length === 0;
   return {
     itemId,
+    contentItemId,
     familyId: f.id,
     skillId: f.skillId,
     band,
@@ -322,7 +356,8 @@ export function buildItem(familyId: string, key: string, band: Band, lang: LangC
     scoring: pack(lang).skills[f.skillId].rubric.mastered,
     audio: f.audio,
     spoken: f.audio === 'none' ? '' : r.prompt,
-    audioContentId: f.audio === 'instruction' && fixedInstruction ? `${f.id}.instruction` : itemId,
+    // Family-scoped: two formats can share an itemId while saying different things.
+    audioContentId: f.audio === 'instruction' && fixedInstruction ? `${f.id}.instruction` : contentItemId,
   };
 }
 
@@ -370,7 +405,7 @@ export function toContentPack(lang: LangCode): ContentPack {
     contentVersion: CONTENT_VERSION,
     lang,
     items: offlineVariants(lang).map((i) => ({
-      itemId: i.itemId,
+      itemId: i.contentItemId,
       skillId: i.skillId,
       version: CONTENT_VERSION,
       band: i.band,

@@ -117,6 +117,7 @@ export const ui = {
   'assess.noneHint': 'This learner has already seen every installed question for this step. You can review, change level, or stop.',
   'assess.review': 'Review results',
   'assess.noAlt': 'No other eligible question for this skill and level in the installed content.',
+  'assess.draftLang': 'The {lang} questions are an unreviewed draft. Check the wording before relying on the result.',
 
   // Review
   'review.back': '← Back to questions',

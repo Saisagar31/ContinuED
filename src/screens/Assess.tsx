@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { go, useApp, useWs } from '../app/context';
-import { ErrorBox, Loading, SkillLabel } from '../app/ui';
-import { LANG_NAMES, t, type MsgKey } from '../content/i18n';
+import { ErrorBox, Loading, Notice, SkillLabel } from '../app/ui';
+import { LANG_NAMES, contentReviewed, t, type MsgKey } from '../content/i18n';
 import { nextItem } from '../assess/stubEngine';
 import type { Observation, Session, SkillStatus } from '../domain/types';
 import type { Workspace } from '../store/db';
@@ -98,6 +98,10 @@ export function Assess({ sessionId }: { sessionId: string }) {
           <span className="mono">{session.learnerId}</span> · {LANG_NAMES[session.assessmentLang].native} · {t(L, 'assess.answered', { n: session.attempts.length })}
         </span>
       </div>
+
+      {!contentReviewed(session.assessmentLang) && (
+        <Notice kind="warn">{t(L, 'assess.draftLang', { lang: LANG_NAMES[session.assessmentLang].native })}</Notice>
+      )}
 
       {item && !exhausted ? (
         <>
