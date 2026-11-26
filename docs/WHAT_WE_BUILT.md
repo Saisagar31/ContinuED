@@ -96,6 +96,43 @@ Both are optional, so sessions saved earlier still open. The example audio list 
 
 ---
 
+## 26 Nov 2026: Deploy and rollback runbook (Omkar, task 13, branch `omkar/13-staging-runbook`)
+
+**In simple terms:** step-by-step instructions for putting the app online safely, and for undoing a bad release. **Nothing has been deployed yet:** we still need the AWS, Cloudflare and ElevenLabs accounts.
+- **`docs/DEPLOY.md`** covers:
+  - two separate environments, staging (fake data only) and production
+  - how to connect Cloudflare Pages
+  - how to deploy the AWS backend and audio packs
+  - the checks and drills to run on staging
+  - how to roll back each part
+  - a "release record" form to fill in for every release
+- **`public/_headers`:** tells phones to always re-check the app's start-up files (so updates arrive), and lets them keep the rest for a year.
+- **Important:** the repo is on Sai's personal GitHub account, so **Sai has to connect Cloudflare Pages** (Cloudflare won't list another person's repos).
+
+---
+
+## 26 Nov 2026: School services: sign-in, sync, signing, dashboard numbers (Omkar, task 11, branch `omkar/11-school-services`)
+
+**In simple terms:** the school server can now take sync uploads from teacher phones, stamp transfers as genuine, and give school and district leads their counts. One school can never see another school's data.
+- **Sign-in check (`api/src/auth.ts`):** every request needs a staff login token (Amazon Cognito). The token decides which school the person belongs to and what role they have: teacher, school lead or district lead. Nothing a phone sends can change the school.
+- **Sync (`POST /events`):** phones send up to 100 events at a time. The server answers for each event: stored now, already had it, or rejected with a reason. A phone that resends the same batch never gets counted twice. Storing an event and updating its counts happen together, or not at all.
+- **Counts (`GET /aggregates`):** transfers by language route, by skill that needs support, and by month. A school lead sees their own school. A district lead sees the total for their district. Counts below 5 are hidden, the same rule the dashboard uses.
+- **Stamping transfers (`POST /sign`, `GET /trust`):** the school's private key stays on the server (Amazon KMS). Phones get the list of public keys, so they can check a stamp offline. Old keys keep working until they expire, and revoked keys show as revoked.
+- **Deleting a learner (`DELETE /learners/{id}`):** a school lead can remove a learner's records, and the counts go down to match.
+- **Phone side (`src/sync/`, `src/transfer/serverSigner.ts`):** an upload queue that only deletes events once the server confirms them. If the login has expired, the queue stops and keeps everything until the teacher signs in again. If there's no internet, nothing is lost.
+- **Cloud setup (`infra/`):** a template that creates the AWS resources (sign-in, API, database, signing key, $1 budget alert). **Not deployed yet.**
+
+**Checked:**
+- 107 tests pass (55 new).
+- Typecheck and build pass.
+- The local server was tried with curl.
+
+**Not checked:**
+- Real AWS, real Cognito, real KMS. The AWS parts are tested only with stand-ins.
+- The phone screens are not wired up to these modules yet.
+
+---
+
 ## 26 Nov 2026: Foundation: shared contracts, API skeleton, test fixtures, CI (Omkar, task 02, branch `omkar/02-foundation`)
 
 **In simple terms:** we set up the ground rules and safety checks so 4 people can build at once without breaking each other's work.

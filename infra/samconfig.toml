@@ -1,0 +1,21 @@
+# AWS SAM CLI config for infra/template.yaml. No account IDs or secrets here.
+# Use from the infra/ folder:  sam deploy --config-env staging
+# ASSUMPTION: region ap-south-1 (Mumbai). Change it if task 05 picked another region.
+# BudgetEmail and AllowedOrigin are passed on the command line (see README.md).
+version = 0.1
+
+[staging.deploy.parameters]
+stack_name = "continued-staging"
+region = "ap-south-1"
+capabilities = "CAPABILITY_IAM"
+resolve_s3 = true
+confirm_changeset = true
+parameter_overrides = "Stage=staging RetentionDays=365"
+
+[prod.deploy.parameters]
+stack_name = "continued-prod"
+region = "ap-south-1"
+capabilities = "CAPABILITY_IAM"
+resolve_s3 = true
+confirm_changeset = true
+parameter_overrides = "Stage=prod RetentionDays=365"
