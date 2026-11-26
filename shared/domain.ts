@@ -94,6 +94,11 @@ export interface Session {
   attempts: Attempt[];
   confirmed: Record<string, SkillStatus>;
   overrides: Record<string, { from: SkillStatus; reason: string }>;
+  // Added 26 Nov (all optional, so sessions saved earlier still load):
+  /** Rubric version used to score this session (plan §3: keep evidence and rubric version together). */
+  rubricVersion?: string;
+  /** Item IDs shown but replaced via "Different question" — excluded from later picks in this session. */
+  shownNotAttempted?: string[];
 }
 
 export interface ReceivedTransfer {
