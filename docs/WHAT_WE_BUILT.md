@@ -111,6 +111,25 @@ Both are optional, so sessions saved earlier still open. The example audio list 
 
 ---
 
+## 26 Nov 2026: Staff sign-in for school services (Omkar, task 11, branch `omkar/11b-staff-sign-in`)
+
+**In simple terms:** teachers can now sign in to their school account on the phone, so the upload queue, the transfer stamp and the school trends have a real login to use. The app still works fully offline without it.
+- **Talking to Amazon Cognito (`src/auth/cognito.ts`):** signs in with email and password, handles the "choose a new password" step for new staff and the 6-digit authenticator code step, and renews the login quietly when it is about to run out. Plain web requests, no new libraries.
+- **Keeping each teacher's login separate (`src/auth/session.ts`):** on a shared phone, each local teacher profile has its own school login. The short-lived login tokens stay in memory only. The phone saves just the renewal token and the school, district, roles and email, filed under that teacher's local profile. Through the app, Teacher B can never pick up Teacher A's school login (this is app-level separation, not encryption). Signing out removes the saved renewal token.
+- **Expired logins:** if Cognito refuses to renew the login, the app forgets it and the upload queue shows "sign in again". If the phone is just offline, nothing is forgotten.
+- **Trusted schools list:** right after sign-in, the phone downloads the list of school stamp keys (`GET /trust`) and saves it, so stamped transfers can be checked offline later.
+- **Sign-in screen (`src/screens/StaffSignIn.tsx`):** a phone-sized form with clear messages (wrong password, too many tries, password reset needed, offline). Not wired into the app yet; the suggested wiring is in the task report.
+- **Cloud setup (`infra/`):** the sign-in app setting now allows this password sign-in. The password travels encrypted (TLS) to Cognito. A stronger method (SRP) is a later improvement.
+
+**Checked:**
+- 124 tests pass (17 new), with Cognito and the API faked.
+- Typecheck and build pass.
+
+**Not checked:**
+- Real Cognito (there is no AWS account yet), and the screen in a real browser.
+
+---
+
 ## 26 Nov 2026: School services: sign-in, sync, signing, dashboard numbers (Omkar, task 11, branch `omkar/11-school-services`)
 
 **In simple terms:** the school server can now take sync uploads from teacher phones, stamp transfers as genuine, and give school and district leads their counts. One school can never see another school's data.
