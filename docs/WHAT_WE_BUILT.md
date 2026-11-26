@@ -4,44 +4,13 @@ A running diary of what's in this repo, written so anyone (teammates, judges, fu
 
 ---
 
-## 26 Nov 2026: Staff sign-in for school services (Omkar, task 11, branch `omkar/11b-staff-sign-in`)
+## 26 Nov 2026: Two new optional fields on a saved session (Omkar, task 02, branch `omkar/02-foundation`)
 
-**In simple terms:** teachers can now sign in to their school account on the phone, so the upload queue, the transfer stamp and the school trends have a real login to use. The app still works fully offline without it.
-- **Talking to Amazon Cognito (`src/auth/cognito.ts`):** signs in with email and password, handles the "choose a new password" step for new staff and the 6-digit authenticator code step, and renews the login quietly when it is about to run out. Plain web requests, no new libraries.
-- **Keeping each teacher's login separate (`src/auth/session.ts`):** on a shared phone, each local teacher profile has its own school login. The short-lived login tokens stay in memory only. The phone saves just the renewal token and the school, district, roles and email, filed under that teacher's local profile. Through the app, Teacher B can never pick up Teacher A's school login (this is app-level separation, not encryption). Signing out removes the saved renewal token.
-- **Expired logins:** if Cognito refuses to renew the login, the app forgets it and the upload queue shows "sign in again". If the phone is just offline, nothing is forgotten.
-- **Trusted schools list:** right after sign-in, the phone downloads the list of school stamp keys (`GET /trust`) and saves it, so stamped transfers can be checked offline later.
-- **Sign-in screen (`src/screens/StaffSignIn.tsx`):** a phone-sized form with clear messages (wrong password, too many tries, password reset needed, offline). Not wired into the app yet; the suggested wiring is in the task report.
-- **Cloud setup (`infra/`):** the sign-in app setting now allows this password sign-in. The password travels encrypted (TLS) to Cognito. A stronger method (SRP) is a later improvement.
+**In simple terms:** after reviewing Ramith's assessment engine, we added two optional fields to what's saved for each assessment session.
+- **`rubricVersion`:** which version of the marking rules was used. The plan says evidence and rules must stay together.
+- **`shownNotAttempted`:** questions the teacher swapped out with "Different question", so they don't come back later in the same session.
 
-**Checked:**
-- 124 tests pass (17 new), with Cognito and the API faked.
-- Typecheck and build pass.
-
-**Not checked:**
-- Real Cognito (there is no AWS account yet), and the screen in a real browser.
-
----
-
-## 26 Nov 2026: School services: sign-in, sync, signing, dashboard numbers (Omkar, task 11, branch `omkar/11-school-services`)
-
-**In simple terms:** the school server can now take sync uploads from teacher phones, stamp transfers as genuine, and give school and district leads their counts. One school can never see another school's data.
-- **Sign-in check (`api/src/auth.ts`):** every request needs a staff login token (Amazon Cognito). The token decides which school the person belongs to and what role they have: teacher, school lead or district lead. Nothing a phone sends can change the school.
-- **Sync (`POST /events`):** phones send up to 100 events at a time. The server answers for each event: stored now, already had it, or rejected with a reason. A phone that resends the same batch never gets counted twice. Storing an event and updating its counts happen together, or not at all.
-- **Counts (`GET /aggregates`):** transfers by language route, by skill that needs support, and by month. A school lead sees their own school. A district lead sees the total for their district. Counts below 5 are hidden, the same rule the dashboard uses.
-- **Stamping transfers (`POST /sign`, `GET /trust`):** the school's private key stays on the server (Amazon KMS). Phones get the list of public keys, so they can check a stamp offline. Old keys keep working until they expire, and revoked keys show as revoked.
-- **Deleting a learner (`DELETE /learners/{id}`):** a school lead can remove a learner's records, and the counts go down to match.
-- **Phone side (`src/sync/`, `src/transfer/serverSigner.ts`):** an upload queue that only deletes events once the server confirms them. If the login has expired, the queue stops and keeps everything until the teacher signs in again. If there's no internet, nothing is lost.
-- **Cloud setup (`infra/`):** a template that creates the AWS resources (sign-in, API, database, signing key, $1 budget alert). **Not deployed yet.**
-
-**Checked:**
-- 107 tests pass (55 new).
-- Typecheck and build pass.
-- The local server was tried with curl.
-
-**Not checked:**
-- Real AWS, real Cognito, real KMS. The AWS parts are tested only with stand-ins.
-- The phone screens are not wired up to these modules yet.
+Both are optional, so sessions saved earlier still open. The example audio list now uses the same clip names as Ramith's language packs (`num.sub_borrow.oral`).
 
 ---
 
