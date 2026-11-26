@@ -361,6 +361,19 @@ export function buildItem(familyId: string, key: string, band: Band, lang: LangC
   };
 }
 
+/**
+ * Clip lookup ID for an item. A fixed instruction is one clip per family. Any
+ * other voiced prompt is scoped to its family, because two families can share
+ * one canonical itemId (is.ask and is.same both use "lit.initial_sounds:<lang>:<word>")
+ * while saying different things; without the family prefix both would look up
+ * the same clip. The audio build (scripts/audio/catalog.ts) reads this value
+ * from the items, so the two can never drift apart.
+ */
+function audioContentIdFor(familyId: string, audio: AudioPolicy, fixedInstruction: boolean, itemId: string): string {
+  if (audio === 'instruction' && fixedInstruction) return `${familyId}.instruction`;
+  return itemId.startsWith(`${familyId}:`) ? itemId : `${familyId}:${itemId}`;
+}
+
 /** Every item for a skill and band in `lang`, one per canonical identity, minus `seen`. */
 export function eligibleItems(skillId: string, band: Band, lang: LangCode, seen: ReadonlySet<string> = new Set()): QuestionItem[] {
   const out: QuestionItem[] = [];
