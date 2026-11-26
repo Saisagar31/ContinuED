@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import type { Attempt, LangCode, Observation, Session, SkillStatus } from '../domain/types';
 import { eligibleItems } from '../content/questions';
 import { STOPPING } from '../content/rubric';
-import { nextItem, reasonText, suggestStatus, suggestStatusFor, summarise } from './engine';
+import { nextItem, reasonText, suggestStatus, suggestStatusFor, summarise, whyStopped } from './engine';
 
 /** Deterministic random source so paths are reproducible. */
 function seeded(seed: number) {
@@ -171,5 +171,65 @@ describe('assessment engine (task 06)', () => {
     expect(reasonText('mr', 'prereq|num.place_value')).toContain('दशक आणि एकक');
     expect(reasonText('ta', 'alternative')).toMatch(/[஀-௿]/);
     expect(reasonText('en', 'Some older free-text reason')).toBe('Some older free-text reason');
+  });
+
+  it('a question swapped out with "Different question" does not come back in the same session', () => {
+    for (let seed = 1; seed <= 40; seed++) {
+      const s = base();
+      const random = seeded(seed);
+      s.current = nextItem(s, new Set(), {}, false, { random })!;
+      const swapped: string[] = [];
+      for (let k = 0; k < 4; k++) {
+        swapped.push(s.current.itemId);
+        s.shownNotAttempted = [...swapped];
+        s.current = nextItem(s, new Set(), {}, true, { random }) ?? s.current;
+      }
+      s.attempts.push({ ...s.current, observation: 'prompted', answeredAt: '' } as Attempt);
+      s.current = undefined;
+      for (let k = 0; k < 6; k++) {
+        const it = nextItem(s, new Set(), {}, false, { random });
+        if (!it) break;
+        expect(swapped).not.toContain(it.itemId);
+        s.attempts.push({ ...it, observation: 'prompted', answeredAt: '' } as Attempt);
+      }
+    }
+  });
+
+  it('a learner who always needs prompting still reaches literacy (per-strand cap)', () => {
+    for (let seed = 1; seed <= 10; seed++) {
+      const s = run(() => 'prompted', { seed });
+      expect(s.attempts.filter((a) => a.skillId.startsWith('lit.')).length, `seed ${seed}`).toBeGreaterThan(0);
+      expect(s.attempts.filter((a) => a.skillId.startsWith('num.')).length).toBeLessThanOrEqual(STOPPING.maxItemsPerStrand);
+    }
+  });
+
+  it('a draft started on other content stops and says why', () => {
+    const s = { ...base(), contentVersion: 'sample-0.1' };
+    expect(nextItem(s, new Set())).toBeUndefined();
+    expect(whyStopped(s, new Set())).toEqual({ kind: 'version_mismatch', sessionVersion: 'sample-0.1', installedVersion: 'draft-1.0' });
+  });
+
+  it('explains a stop: all mastered, exhausted skills, or enough evidence', () => {
+    const allMastered = Object.fromEntries(['num.recognition', 'num.place_value', 'num.add_no_carry', 'num.sub_borrow', 'num.fractions', 'lit.initial_sounds', 'lit.decoding', 'lit.sentence_reading'].map((id) => [id, 'mastered' as SkillStatus]));
+    expect(nextItem(base(), new Set(), allMastered)).toBeUndefined();
+    expect(whyStopped(base(), new Set(), allMastered).kind).toBe('all_mastered');
+
+    const lit = new Set<string>();
+    for (const id of ['lit.initial_sounds', 'lit.decoding', 'lit.sentence_reading']) for (const b of [1, 2] as const) for (const i of eligibleItems(id, b, 'en')) lit.add(i.itemId);
+    const s = run(() => 'independent', { seen: lit });
+    expect(s.attempts.some((a) => a.skillId.startsWith('lit.'))).toBe(false);
+    const why = whyStopped(s, lit);
+    expect(why.kind).toBe('exhausted');
+    expect(why.kind === 'exhausted' && why.skills).toContain('lit.initial_sounds');
+    // Reusing earlier questions (empty cross-session set) brings literacy back.
+    expect(nextItem(s, new Set())?.skillId.startsWith('lit.')).toBe(true);
+  });
+
+  it('prefers items whose recording is installed when an audio pack is present', () => {
+    const installed = new Set(['nr.say.instruction']);
+    for (let seed = 1; seed <= 20; seed++) {
+      const it = nextItem(base(), new Set(), {}, false, { random: seeded(seed), hasClip: (id) => installed.has(id) })!;
+      expect(it.familyId).toBe('nr.say');
+    }
   });
 });
