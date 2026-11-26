@@ -82,10 +82,9 @@ describe('pack catalog (task 10b)', () => {
   });
 
   it('one clip ID never stands for two texts (is.ask and is.same share an itemId, not a clip)', () => {
-    // Literacy keys are stable positions "<band>.<index>" (see questions.ts).
-    const ask = buildItem('is.ask', '1.0', 1, 'mr');
-    const same = buildItem('is.same', '1.0', 1, 'mr');
-    expect(ask.prompt).toContain(PACKS.mr.lit.sounds[0][0].w);
+    const w = PACKS.mr.lit.sounds[0][0].w;
+    const ask = buildItem('is.ask', w, 1, 'mr');
+    const same = buildItem('is.same', w, 1, 'mr');
     expect(ask.itemId).toBe(same.itemId);
     expect(ask.audioContentId).not.toBe(same.audioContentId);
     const keys = strings.map((s) => `${s.lang}|${s.contentId}`);
