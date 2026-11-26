@@ -301,6 +301,7 @@
 "interface","audio.play","▶ Play recording","▶ రికార్డింగ్ వినిపించండి","","",""
 "interface","oral.clip","Audio: reviewed recording installed","ఆడియో: సరిచూసిన రికార్డింగ్ ఇన్‌స్టాల్ అయింది","","",""
 "interface","oral.deviceSpeech","Audio: phone voice only (not reviewed)","ఆడియో: ఫోన్ గొంతు మాత్రమే (సరిచూడలేదు)","","",""
+"interface","audio.credit","Voice by ElevenLabs","గొంతు: ElevenLabs","","",""
 "interface","assess.play","▶ Play the instruction","▶ సూచనను వినిపించండి","","",""
 "skill","num.recognition.name","Number recognition","సంఖ్యల గుర్తింపు","","",""
 "skill","num.recognition.group","Number-reading group","సంఖ్యలు చదివే బృందం","","",""

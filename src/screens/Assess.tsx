@@ -221,6 +221,8 @@ function PlayInstruction({ lang, contentId, text }: { lang: LangCode; contentId:
     <button className="small" onClick={() => void playFor(lang, contentId, text).then(setAvail)}>
       {t(L, 'assess.play')}
       {avail === 'device_speech' ? ` · ${t(L, 'oral.deviceSpeech')}` : ''}
+      {/* ElevenLabs free plan requires attribution wherever its recordings play. */}
+      {avail === 'clip' ? ` · ${t(L, 'audio.credit')}` : ''}
     </button>
   );
 }

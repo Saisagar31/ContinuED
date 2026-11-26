@@ -325,6 +325,7 @@ export const mr: LangPack<MsgKey> = {
     'audio.play': "▶ ध्वनिमुद्रण वाजवा",
     'oral.clip': "ऑडिओ: तपासलेले ध्वनिमुद्रण इन्स्टॉल आहे",
     'oral.deviceSpeech': "ऑडिओ: फक्त फोनचा आवाज (तपासलेला नाही)",
+    'audio.credit': "आवाज: ElevenLabs",
     'assess.play': "▶ सूचना ऐकवा",
   },
   skills: {

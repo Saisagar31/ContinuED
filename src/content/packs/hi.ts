@@ -325,6 +325,7 @@ export const hi: LangPack<MsgKey> = {
     'audio.play': "▶ रिकॉर्डिंग चलाएँ",
     'oral.clip': "ऑडियो: जाँची गई रिकॉर्डिंग इंस्टॉल है",
     'oral.deviceSpeech': "ऑडियो: केवल फ़ोन की आवाज़ (जाँची नहीं गई)",
+    'audio.credit': "आवाज़: ElevenLabs",
     'assess.play': "▶ निर्देश सुनाएँ",
   },
   skills: {

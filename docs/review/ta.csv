@@ -301,6 +301,7 @@
 "interface","audio.play","▶ Play recording","▶ பதிவை ஒலிக்கச் செய்","","",""
 "interface","oral.clip","Audio: reviewed recording installed","ஒலி: சரிபார்த்த பதிவு நிறுவப்பட்டுள்ளது","","",""
 "interface","oral.deviceSpeech","Audio: phone voice only (not reviewed)","ஒலி: தொலைபேசியின் குரல் மட்டும் (சரிபார்க்கப்படவில்லை)","","",""
+"interface","audio.credit","Voice by ElevenLabs","குரல்: ElevenLabs","","",""
 "interface","assess.play","▶ Play the instruction","▶ அறிவுறுத்தலை ஒலிக்கச் செய்","","",""
 "skill","num.recognition.name","Number recognition","எண் அறிதல்","","",""
 "skill","num.recognition.group","Number-reading group","எண் வாசிக்கும் குழு","","",""

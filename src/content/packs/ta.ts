@@ -325,6 +325,7 @@ export const ta: LangPack<MsgKey> = {
     'audio.play': "▶ பதிவை ஒலிக்கச் செய்",
     'oral.clip': "ஒலி: சரிபார்த்த பதிவு நிறுவப்பட்டுள்ளது",
     'oral.deviceSpeech': "ஒலி: தொலைபேசியின் குரல் மட்டும் (சரிபார்க்கப்படவில்லை)",
+    'audio.credit': "குரல்: ElevenLabs",
     'assess.play': "▶ அறிவுறுத்தலை ஒலிக்கச் செய்",
   },
   skills: {

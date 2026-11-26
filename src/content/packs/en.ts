@@ -333,6 +333,7 @@ export const ui = {
   'audio.play': "▶ Play recording",
   'oral.clip': "Audio: reviewed recording installed",
   'oral.deviceSpeech': "Audio: phone voice only (not reviewed)",
+  'audio.credit': "Voice by ElevenLabs",
   'assess.play': "▶ Play the instruction",
 } as const;
 

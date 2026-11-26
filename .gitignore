@@ -34,3 +34,5 @@ docs/pitch/
 
 # Audio build output (task 10) — generated MP3s, ledger, manifests
 audio-out/
+# Private ElevenLabs sample input (docs/AUDIO_PACK_SETUP.md)
+sample-texts.json

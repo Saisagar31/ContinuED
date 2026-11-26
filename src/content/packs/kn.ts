@@ -325,6 +325,7 @@ export const kn: LangPack<MsgKey> = {
     'audio.play': "▶ ಧ್ವನಿಮುದ್ರಣ ಕೇಳಿಸಿ",
     'oral.clip': "ಧ್ವನಿ: ಪರಿಶೀಲಿತ ಧ್ವನಿಮುದ್ರಣ ಸ್ಥಾಪಿತವಾಗಿದೆ",
     'oral.deviceSpeech': "ಧ್ವನಿ: ಫೋನಿನ ಧ್ವನಿ ಮಾತ್ರ (ಪರಿಶೀಲಿಸಿಲ್ಲ)",
+    'audio.credit': "ಧ್ವನಿ: ElevenLabs",
     'assess.play': "▶ ಸೂಚನೆ ಕೇಳಿಸಿ",
   },
   skills: {

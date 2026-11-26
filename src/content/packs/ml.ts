@@ -325,6 +325,7 @@ export const ml: LangPack<MsgKey> = {
     'audio.play': "▶ റെക്കോർഡിംഗ് കേൾപ്പിക്കുക",
     'oral.clip': "ശബ്ദം: പരിശോധിച്ച റെക്കോർഡിംഗ് ഇൻസ്റ്റാൾ ചെയ്തിട്ടുണ്ട്",
     'oral.deviceSpeech': "ശബ്ദം: ഫോണിന്റെ ശബ്ദം മാത്രം (പരിശോധിച്ചിട്ടില്ല)",
+    'audio.credit': "ശബ്ദം: ElevenLabs",
     'assess.play': "▶ നിർദ്ദേശം കേൾപ്പിക്കുക",
   },
   skills: {

@@ -301,6 +301,7 @@
 "interface","audio.play","▶ Play recording","▶ ध्वनिमुद्रण वाजवा","","",""
 "interface","oral.clip","Audio: reviewed recording installed","ऑडिओ: तपासलेले ध्वनिमुद्रण इन्स्टॉल आहे","","",""
 "interface","oral.deviceSpeech","Audio: phone voice only (not reviewed)","ऑडिओ: फक्त फोनचा आवाज (तपासलेला नाही)","","",""
+"interface","audio.credit","Voice by ElevenLabs","आवाज: ElevenLabs","","",""
 "interface","assess.play","▶ Play the instruction","▶ सूचना ऐकवा","","",""
 "skill","num.recognition.name","Number recognition","संख्या ओळख","","",""
 "skill","num.recognition.group","Number-reading group","संख्या वाचन गट","","",""

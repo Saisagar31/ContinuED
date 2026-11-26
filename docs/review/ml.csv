@@ -301,6 +301,7 @@
 "interface","audio.play","▶ Play recording","▶ റെക്കോർഡിംഗ് കേൾപ്പിക്കുക","","",""
 "interface","oral.clip","Audio: reviewed recording installed","ശബ്ദം: പരിശോധിച്ച റെക്കോർഡിംഗ് ഇൻസ്റ്റാൾ ചെയ്തിട്ടുണ്ട്","","",""
 "interface","oral.deviceSpeech","Audio: phone voice only (not reviewed)","ശബ്ദം: ഫോണിന്റെ ശബ്ദം മാത്രം (പരിശോധിച്ചിട്ടില്ല)","","",""
+"interface","audio.credit","Voice by ElevenLabs","ശബ്ദം: ElevenLabs","","",""
 "interface","assess.play","▶ Play the instruction","▶ നിർദ്ദേശം കേൾപ്പിക്കുക","","",""
 "skill","num.recognition.name","Number recognition","സംഖ്യ തിരിച്ചറിയൽ","","",""
 "skill","num.recognition.group","Number-reading group","സംഖ്യ വായിക്കുന്ന സംഘം","","",""

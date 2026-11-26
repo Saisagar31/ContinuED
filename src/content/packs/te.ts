@@ -325,6 +325,7 @@ export const te: LangPack<MsgKey> = {
     'audio.play': "▶ రికార్డింగ్ వినిపించండి",
     'oral.clip': "ఆడియో: సరిచూసిన రికార్డింగ్ ఇన్‌స్టాల్ అయింది",
     'oral.deviceSpeech': "ఆడియో: ఫోన్ గొంతు మాత్రమే (సరిచూడలేదు)",
+    'audio.credit': "గొంతు: ElevenLabs",
     'assess.play': "▶ సూచనను వినిపించండి",
   },
   skills: {
