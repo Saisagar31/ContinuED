@@ -57,7 +57,10 @@ export function SignIn() {
         <h1>ContinuED</h1>
         <LangSelect />
       </div>
-      <p className="muted">{t(L, 'signin.tagline')}</p>
+      <div className="signin-intro">
+        <p>{t(L, 'signin.tagline')}</p>
+        <img className="classroom-art welcome-art" src="/illustrations/welcome.webp" width="672" height="448" alt="" />
+      </div>
 
       {showCreate ? (
         <form onSubmit={doCreate} className="card stack">

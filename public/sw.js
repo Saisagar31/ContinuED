@@ -3,7 +3,10 @@
 // cache-first for same-origin static assets. Content/audio packs are NOT handled
 // here — task 10 owns verified pack activation.
 const CACHE = 'continued-shell-v1';
-const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg'];
+const SHELL = [
+  '/', '/index.html', '/manifest.webmanifest', '/icon.svg',
+  '/illustrations/welcome.webp', '/illustrations/reading-circle.webp', '/illustrations/learning-passport.webp',
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
