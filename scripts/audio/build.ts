@@ -12,7 +12,7 @@
 import { readFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
 import { LANGS, type LangCode } from '../../shared/domain';
-import { DEFAULT_VOICE_SETTINGS, sampleSkillStrings } from './catalog';
+import { DEFAULT_VOICE_SETTINGS, packSpokenStrings } from './catalog';
 import { runBuild, type BuildMode } from './pipeline';
 
 try {
@@ -64,7 +64,7 @@ if (values['sample-file']) {
   }
 }
 
-const { contentVersion, strings } = sampleSkillStrings();
+const { contentVersion, strings } = packSpokenStrings(langs);
 const result = await runBuild(
   strings,
   {

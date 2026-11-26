@@ -3,10 +3,14 @@
  * pack build would voice. Only content strings go in here — never learner data.
  */
 import { createHash } from 'node:crypto';
-import type { LangCode } from '../../shared/domain';
-import { CONTENT_VERSION, SKILLS } from '../../src/content/skills';
+import { LANGS, type LangCode } from '../../shared/domain';
+import { fixedSpokenStrings, PACKS } from '../../src/content/packs';
+import { offlineVariants } from '../../src/content/questions';
+import { OFFLINE_TARGETS } from '../../src/content/rubric';
+import { ACTIVITY_IDS, CONTENT_VERSION } from '../../src/content/skills';
 
-export type SpokenKind = 'instruction' | 'activity' | 'oral_check';
+/** 'instruction' = fixed or templated instruction (stimulus shown, not voiced); 'question' = whole prompt voiced (audio 'full'). */
+export type SpokenKind = 'instruction' | 'question' | 'activity' | 'oral_check';
 
 /** One spoken string from a content source. */
 export interface SpokenString {
@@ -86,16 +90,53 @@ export function buildCatalog(strings: SpokenString[], voice: VoiceConfig, opts: 
   return [...byKey.values()];
 }
 
+/** Literacy skills whose written stimulus is the thing being assessed: it must never be voiced. */
+const READING_SKILLS = new Set(['lit.decoding', 'lit.sentence_reading']);
+
 /**
- * Adapter for the synthetic sample skills (src/content/skills.ts). English only,
- * and nothing there is approved yet, so a real build voices nothing from it
- * unless --include-unapproved is passed.
+ * Adapter for Ramith's seven language packs (src/content/packs) and question
+ * families (src/content/questions.ts). Per language it lists:
+ *  - question prompts the installed offline pack can present, from
+ *    offlineVariants() — the same bounded subset toContentPack() ships, capped at
+ *    `perFamilyBand` variants per family and band (default
+ *    OFFLINE_TARGETS.voicedVariantsPerFamilyBand in src/content/rubric.ts).
+ *    Items with audio 'none' are skipped; for 'instruction' items only the
+ *    instruction is voiced, never the stimulus. The contentId is the item's own
+ *    audioContentId, so it is exactly what the engine puts on PresentedItem.
+ *  - every oral check (`<skillId>.oral`) and activity's steps (activity ID).
+ * `approved` is the pack's reviewStatus; draft packs need --include-unapproved.
+ * Throws on a content bug the pipeline must not paper over: one contentId with
+ * two different texts, or a reading stimulus inside voiced text.
  */
-export function sampleSkillStrings(): { contentVersion: string; strings: SpokenString[] } {
+export function packSpokenStrings(
+  langs: readonly LangCode[] = LANGS,
+  perFamilyBand: number = OFFLINE_TARGETS.voicedVariantsPerFamilyBand,
+): { contentVersion: string; strings: SpokenString[] } {
   const strings: SpokenString[] = [];
-  for (const skill of SKILLS) {
-    strings.push({ contentId: `${skill.id}.oral`, lang: 'en', text: skill.oralCheck, approved: false, kind: 'oral_check' });
-    for (const a of skill.activities) strings.push({ contentId: a.id, lang: 'en', text: a.steps, approved: false, kind: 'activity' });
+  const textById = new Map<string, string>();
+  const add = (x: SpokenString) => {
+    const k = `${x.lang}|${x.contentId}`;
+    const prev = textById.get(k);
+    if (prev !== undefined) {
+      if (prev !== x.text) throw new Error(`Audio contentId ${x.contentId} (${x.lang}) has two different texts`);
+      return; // same clip already listed (fixed instruction shared by every variant)
+    }
+    textById.set(k, x.text);
+    strings.push(x);
+  };
+  for (const lang of langs) {
+    const approved = PACKS[lang].reviewStatus === 'approved';
+    for (const item of offlineVariants(lang, perFamilyBand)) {
+      if (item.audio === 'none' || !item.spoken) continue;
+      if (READING_SKILLS.has(item.skillId) && item.audio !== 'instruction') {
+        throw new Error(`Reading item ${item.itemId} (${lang}) has audio '${item.audio}'; reading stimuli are never voiced`);
+      }
+      if (item.audio === 'instruction' && item.stimulus && item.spoken.includes(item.stimulus)) {
+        throw new Error(`Item ${item.itemId} (${lang}) would voice its own stimulus`);
+      }
+      add({ contentId: item.audioContentId, lang, text: item.spoken, approved, kind: item.audio === 'full' ? 'question' : 'instruction' });
+    }
   }
+  for (const f of fixedSpokenStrings(ACTIVITY_IDS)) if (langs.includes(f.lang)) add({ ...f });
   return { contentVersion: CONTENT_VERSION, strings };
 }

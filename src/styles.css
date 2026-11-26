@@ -150,6 +150,7 @@ label { display: flex; flex-direction: column; gap: .3rem; font-weight: 550; }
 .seg .on { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
 
 .question .prompt { font-size: 1.6rem; font-weight: 650; white-space: pre-line; margin: .5rem 0; line-height: 1.35; }
+.question .stimulus { font-size: 2rem; font-weight: 700; text-align: center; white-space: pre-wrap; padding: .75rem; margin: .25rem 0 .5rem; border: 2px dashed currentColor; border-radius: 12px; line-height: 1.5; }
 .obs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
 .obs { flex-direction: column; align-items: flex-start; text-align: left; min-height: 72px; gap: .15rem; }
 .obs-independent { border-left: 6px solid var(--ok); }

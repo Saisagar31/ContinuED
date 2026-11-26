@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { checkAudioManifest } from '../../shared/guards';
 import type { AudioManifest } from '../../shared/contracts';
-import { buildCatalog, dedupeKey, DEFAULT_VOICE_SETTINGS, sampleSkillStrings, type SpokenString, type VoiceConfig } from './catalog';
+import { buildCatalog, dedupeKey, DEFAULT_VOICE_SETTINGS, type SpokenString, type VoiceConfig } from './catalog';
 import { readLedger, runBuild, type BuildDeps, type BuildOptions } from './pipeline';
 import { recordReview } from './review';
 
@@ -61,11 +61,6 @@ describe('catalog', () => {
     const c = buildCatalog([s('a1', 'x', false)], voice, { includeUnapproved: true });
     expect(c).toHaveLength(1);
     expect(c[0].approved).toBe(false);
-  });
-  it('sample skills are English, unapproved, content-only', () => {
-    const { strings } = sampleSkillStrings();
-    expect(strings.length).toBeGreaterThan(0);
-    expect(strings.every((x) => x.lang === 'en' && !x.approved)).toBe(true);
   });
 });
 

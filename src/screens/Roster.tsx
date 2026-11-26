@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from 'react';
-import { go, useAsync, useWs } from '../app/context';
+import { go, useApp, useAsync, useWs } from '../app/context';
 import { Empty, ErrorBox, Loading, fmtDate } from '../app/ui';
+import { t } from '../content/i18n';
 import { AGE_BANDS, type AgeBand } from '../domain/types';
 
 export function Roster() {
   const ws = useWs();
+  const { uiLang: L } = useApp();
   const [q, setQ] = useState('');
   const [adding, setAdding] = useState(false);
   const data = useAsync(async () => {
@@ -12,8 +14,8 @@ export function Roster() {
     return { learners, sessions };
   }, [ws.teacherId]);
 
-  if (data.loading && !data.data) return <Loading />;
-  if (data.error) return <ErrorBox title="Could not open this phone’s storage">{data.error.message} — close other ContinuED tabs and reopen.</ErrorBox>;
+  if (data.loading && !data.data) return <Loading label={t(L, 'common.loading')} />;
+  if (data.error) return <ErrorBox title={t(L, 'roster.storageError')}>{data.error.message}</ErrorBox>;
   const { learners, sessions } = data.data!;
   const drafts = sessions.filter((s) => s.status === 'draft');
   const needle = q.trim().toUpperCase();
@@ -22,15 +24,15 @@ export function Roster() {
   return (
     <div className="stack">
       <div className="row between">
-        <h1>My learners</h1>
-        <button className="primary" onClick={() => setAdding(true)}>+ Learner</button>
+        <h1>{t(L, 'roster.title')}</h1>
+        <button className="primary" onClick={() => setAdding(true)}>{t(L, 'roster.add')}</button>
       </div>
 
       {adding && <AddLearner onDone={(id) => { setAdding(false); if (id) go(`/learner/${id}`); else data.reload(); }} />}
 
       {drafts.length > 0 && (
         <section className="card">
-          <h2>Unfinished assessments</h2>
+          <h2>{t(L, 'roster.drafts')}</h2>
           <ul className="list">
             {drafts.map((d) => {
               const l = learners.find((x) => x.id === d.learnerId);
@@ -38,7 +40,7 @@ export function Roster() {
                 <li key={d.id}>
                   <a href={`#/assess/${d.id}`} className="list-link">
                     <span><strong className="mono">{d.learnerId}</strong> {l?.label && <span className="muted">· {l.label}</span>}</span>
-                    <span className="muted">{d.attempts.length} answered · {fmtDate(d.updatedAt)} · Resume →</span>
+                    <span className="muted">{t(L, 'roster.answered', { n: d.attempts.length })} · {fmtDate(d.updatedAt)} · {t(L, 'roster.resume')}</span>
                   </a>
                 </li>
               );
@@ -48,14 +50,14 @@ export function Roster() {
       )}
 
       <label className="search">
-        <span className="sr-only">Find a learner</span>
-        <input type="search" placeholder="Find by ID or nickname" value={q} onChange={(e) => setQ(e.target.value)} />
+        <span className="sr-only">{t(L, 'roster.find')}</span>
+        <input type="search" placeholder={t(L, 'roster.find')} value={q} onChange={(e) => setQ(e.target.value)} />
       </label>
 
       {learners.length === 0 ? (
-        <Empty title="No learners yet">Add a learner to start an assessment, or receive a transfer from another school.</Empty>
+        <Empty title={t(L, 'roster.empty')}>{t(L, 'roster.emptyHint')}</Empty>
       ) : shown.length === 0 ? (
-        <Empty title={`No learner matches “${q}”`} />
+        <Empty title={t(L, 'roster.noMatch', { q })} />
       ) : (
         <ul className="list card">
           {shown.map((l) => {
@@ -67,9 +69,9 @@ export function Roster() {
                   <span>
                     <strong className="mono">{l.id}</strong>
                     {l.label && <span className="muted"> · {l.label}</span>}
-                    {l.source === 'transfer' && <span className="tag">transferred in</span>}
+                    {l.source === 'transfer' && <span className="tag">{t(L, 'roster.transferredIn')}</span>}
                   </span>
-                  <span className="muted">{l.ageBand ? `Age ${l.ageBand} · ` : ''}{done} assessment{done === 1 ? '' : 's'}</span>
+                  <span className="muted">{l.ageBand ? `${t(L, 'common.age', { age: l.ageBand })} · ` : ''}{t(L, 'roster.assessments', { n: done })}</span>
                 </a>
               </li>
             );
@@ -82,6 +84,7 @@ export function Roster() {
 
 function AddLearner({ onDone }: { onDone(id?: string): void }) {
   const ws = useWs();
+  const { uiLang: L } = useApp();
   const [label, setLabel] = useState('');
   const [age, setAge] = useState<AgeBand | ''>('');
   async function submit(e: FormEvent) {
@@ -91,22 +94,22 @@ function AddLearner({ onDone }: { onDone(id?: string): void }) {
   }
   return (
     <form className="card stack" onSubmit={submit}>
-      <h2>Add learner</h2>
-      <p className="muted small">A random pseudonymous ID is created. The nickname stays on this phone and is never included in a transfer.</p>
+      <h2>{t(L, 'add.title')}</h2>
+      <p className="muted small">{t(L, 'add.hint')}</p>
       <label>
-        Nickname (optional, this phone only)
+        {t(L, 'add.nickname')}
         <input value={label} onChange={(e) => setLabel(e.target.value)} maxLength={40} />
       </label>
       <label>
-        Age band
+        {t(L, 'add.ageBand')}
         <select value={age} onChange={(e) => setAge(e.target.value as AgeBand)}>
-          <option value="">Not recorded</option>
+          <option value="">{t(L, 'add.notRecorded')}</option>
           {AGE_BANDS.map((a) => <option key={a} value={a}>{a}</option>)}
         </select>
       </label>
       <div className="row">
-        <button className="primary">Add</button>
-        <button type="button" onClick={() => onDone()}>Cancel</button>
+        <button className="primary">{t(L, 'add.submit')}</button>
+        <button type="button" onClick={() => onDone()}>{t(L, 'common.cancel')}</button>
       </div>
     </form>
   );

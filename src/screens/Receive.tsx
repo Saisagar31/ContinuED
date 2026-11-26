@@ -1,20 +1,25 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import jsQR from 'jsqr';
-import { go, useAsync, useWs } from '../app/context';
+import { go, useApp, useAsync, useWs } from '../app/context';
 import { ErrorBox, Notice, fmtDate } from '../app/ui';
+import { t, type MsgKey } from '../content/i18n';
 import { decodeCapsule, type DecodeResult } from '../transfer/capsule';
 import { deviceTrustStore } from '../transfer/deviceTrust';
+import { record, transferReceivedEvent } from '../app/services';
 
 type Mode = 'scan' | 'upload' | 'paste';
 
-const FAILURES: Record<string, { title: string; fix: string }> = {
-  malformed: { title: 'This is not a ContinuED transfer code', fix: 'Check you scanned the transfer QR (not another QR on the page), or paste the full text code.' },
-  wrong_version: { title: 'This transfer was made by a different app version', fix: 'Update ContinuED on this phone when you are next online, then try again. Keep the slip.' },
-  damaged: { title: 'The code is incomplete or has a typo', fix: 'Scan again in good light, or re-copy the whole text code. The last characters are a check that catches mistakes.' },
+const FAILURES: Record<string, { title: MsgKey; fix: MsgKey }> = {
+  malformed: { title: 'receive.malformed', fix: 'receive.malformedFix' },
+  wrong_version: { title: 'receive.wrong_version', fix: 'receive.wrong_versionFix' },
+  damaged: { title: 'receive.damaged', fix: 'receive.damagedFix' },
 };
+
+const MODE_LABEL: Record<Mode, MsgKey> = { scan: 'receive.scan', upload: 'receive.photo', paste: 'receive.paste' };
 
 export function Receive() {
   const ws = useWs();
+  const { uiLang: L, staff } = useApp();
   const [mode, setMode] = useState<Mode>('scan');
   const [failure, setFailure] = useState<Extract<DecodeResult, { ok: false }> | null>(null);
   const received = useAsync(() => ws.transfers(), [ws.teacherId]);
@@ -25,18 +30,21 @@ export function Receive() {
       const r = await decodeCapsule(text, deviceTrustStore());
       if (!r.ok) return setFailure(r);
       await ws.saveTransfer({ tid: r.envelope.tid, code: r.code, trust: r.trust });
+      // Destination language = the receiving teacher's interface language (the corridor end on the dashboard).
+      const e = r.envelope;
+      void record(transferReceivedEvent(e.tid, ws.teacherId, e.lp, e.ol, L, e.cv, e.s), staff);
       go(`/plan/${r.envelope.tid}`);
     },
-    [ws],
+    [ws, L, staff],
   );
 
   return (
     <div className="stack">
-      <h1>Receive a transfer</h1>
+      <h1>{t(L, 'receive.title')}</h1>
       <div className="seg tabs" role="tablist">
         {(['scan', 'upload', 'paste'] as Mode[]).map((m) => (
           <button key={m} role="tab" aria-selected={mode === m} className={mode === m ? 'on' : ''} onClick={() => { setMode(m); setFailure(null); }}>
-            {m === 'scan' ? 'Scan QR' : m === 'upload' ? 'Photo of slip' : 'Paste code'}
+            {t(L, MODE_LABEL[m])}
           </button>
         ))}
       </div>
@@ -46,28 +54,28 @@ export function Receive() {
       {mode === 'paste' && <Paste onCode={handle} />}
 
       {failure && (
-        <ErrorBox title={FAILURES[failure.reason].title}>
-          <p>{FAILURES[failure.reason].fix}</p>
-          <p className="small muted">Detail: {failure.detail}</p>
+        <ErrorBox title={t(L, FAILURES[failure.reason].title)}>
+          <p>{t(L, FAILURES[failure.reason].fix)}</p>
+          <p className="small muted">{t(L, 'common.detail', { detail: failure.detail })}</p>
         </ErrorBox>
       )}
 
       {(received.data?.length ?? 0) > 0 && (
         <section className="card">
-          <h2>Received on this phone</h2>
+          <h2>{t(L, 'receive.list')}</h2>
           <ul className="list">
-            {received.data!.map((t) => (
-              <li key={t.tid}>
-                <a className="list-link" href={`#/plan/${t.tid}`}>
-                  <span className="mono">{t.tid}</span>
-                  <span className="muted small">{fmtDate(t.receivedAt)} · {t.trust}</span>
+            {received.data!.map((tr) => (
+              <li key={tr.tid}>
+                <a className="list-link" href={`#/plan/${tr.tid}`}>
+                  <span className="mono">{tr.tid}</span>
+                  <span className="muted small">{fmtDate(tr.receivedAt)} · {t(L, `trust.${tr.trust}`)}</span>
                 </a>
               </li>
             ))}
           </ul>
         </section>
       )}
-      <Notice>Opening a transfer works offline. Nothing is sent anywhere until school sync is set up.</Notice>
+      <Notice>{t(L, 'receive.offlineNote')}</Notice>
     </div>
   );
 }
@@ -77,6 +85,7 @@ function decodeImageData(img: ImageData): string | null {
 }
 
 function Scanner({ onCode, onFallback }: { onCode(t: string): void; onFallback(m: Mode): void }) {
+  const { uiLang: L } = useApp();
   const video = useRef<HTMLVideoElement>(null);
   const [state, setState] = useState<'idle' | 'starting' | 'running' | 'denied' | 'nocamera' | 'insecure' | 'error'>('idle');
   const stream = useRef<MediaStream | null>(null);
@@ -85,7 +94,7 @@ function Scanner({ onCode, onFallback }: { onCode(t: string): void; onFallback(m
 
   const stop = useCallback(() => {
     cancelAnimationFrame(raf.current);
-    stream.current?.getTracks().forEach((t) => t.stop());
+    stream.current?.getTracks().forEach((tr) => tr.stop());
     stream.current = null;
   }, []);
 
@@ -142,29 +151,30 @@ function Scanner({ onCode, onFallback }: { onCode(t: string): void; onFallback(m
   return (
     <section className="card stack">
       <div className={`viewfinder ${state === 'running' ? 'live' : ''}`}>
-        <video ref={video} playsInline muted aria-label="Camera preview" />
-        {state !== 'running' && <div className="vf-placeholder">Camera is off</div>}
+        <video ref={video} playsInline muted aria-label={t(L, 'cam.preview')} />
+        {state !== 'running' && <div className="vf-placeholder">{t(L, 'cam.off')}</div>}
       </div>
       {state === 'running' ? (
-        <button onClick={() => { stop(); setState('idle'); }}>Cancel scan</button>
+        <button onClick={() => { stop(); setState('idle'); }}>{t(L, 'cam.cancel')}</button>
       ) : (
-        <button className="primary" onClick={start} disabled={state === 'starting'}>{state === 'starting' ? 'Starting camera…' : 'Start camera'}</button>
+        <button className="primary" onClick={start} disabled={state === 'starting'}>{state === 'starting' ? t(L, 'cam.starting') : t(L, 'cam.start')}</button>
       )}
       {state === 'denied' && (
-        <ErrorBox title="Camera permission was refused">
-          Allow camera access for this site in your browser settings, or{' '}
-          <button className="link" onClick={() => onFallback('upload')}>use a photo</button> /{' '}
-          <button className="link" onClick={() => onFallback('paste')}>paste the code</button>.
+        <ErrorBox title={t(L, 'cam.denied')}>
+          {t(L, 'cam.deniedHint')}{' '}
+          <button className="link" onClick={() => onFallback('upload')}>{t(L, 'receive.photo')}</button> /{' '}
+          <button className="link" onClick={() => onFallback('paste')}>{t(L, 'receive.paste')}</button>
         </ErrorBox>
       )}
-      {state === 'nocamera' && <ErrorBox title="No camera found">Use a photo of the slip or paste the code instead.</ErrorBox>}
-      {state === 'insecure' && <ErrorBox title="Camera needs a secure (https) connection">Open the app from its https address, or use a photo or paste.</ErrorBox>}
-      {state === 'error' && <ErrorBox title="The camera could not start">Close other apps using the camera and try again, or use a photo.</ErrorBox>}
+      {state === 'nocamera' && <ErrorBox title={t(L, 'cam.none')}>{t(L, 'cam.noneHint')}</ErrorBox>}
+      {state === 'insecure' && <ErrorBox title={t(L, 'cam.insecure')}>{t(L, 'cam.insecureHint')}</ErrorBox>}
+      {state === 'error' && <ErrorBox title={t(L, 'cam.error')}>{t(L, 'cam.errorHint')}</ErrorBox>}
     </section>
   );
 }
 
 function Upload({ onCode }: { onCode(t: string): void }) {
+  const { uiLang: L } = useApp();
   const [err, setErr] = useState('');
   async function onFile(f?: File) {
     setErr('');
@@ -182,15 +192,15 @@ function Upload({ onCode }: { onCode(t: string): void }) {
         const text = decodeImageData(ctx.getImageData(0, 0, c.width, c.height));
         if (text) return onCode(text);
       }
-      setErr('No QR code found in this image. Take the photo straight on, fill the frame with the code, and avoid glare.');
+      setErr(t(L, 'upload.noQr'));
     } catch {
-      setErr('This file could not be opened as an image.');
+      setErr(t(L, 'upload.badFile'));
     }
   }
   return (
     <section className="card stack">
       <label className="file">
-        Choose or take a photo of the slip
+        {t(L, 'upload.choose')}
         <input type="file" accept="image/*" capture="environment" onChange={(e) => onFile(e.target.files?.[0])} />
       </label>
       {err && <ErrorBox title={err} />}
@@ -199,14 +209,15 @@ function Upload({ onCode }: { onCode(t: string): void }) {
 }
 
 function Paste({ onCode }: { onCode(t: string): void }) {
+  const { uiLang: L } = useApp();
   const [text, setText] = useState('');
   return (
     <form className="card stack" onSubmit={(e) => { e.preventDefault(); onCode(text); }}>
       <label>
-        Transfer code (starts with CED)
+        {t(L, 'paste.label')}
         <textarea rows={5} value={text} onChange={(e) => setText(e.target.value)} spellCheck={false} autoCapitalize="off" autoCorrect="off" className="mono" />
       </label>
-      <button className="primary" disabled={!text.trim()}>Open transfer</button>
+      <button className="primary" disabled={!text.trim()}>{t(L, 'paste.open')}</button>
     </form>
   );
 }

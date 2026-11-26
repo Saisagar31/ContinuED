@@ -161,7 +161,7 @@ export class Workspace {
     return (await this.sessions()).filter((s) => s.status === 'draft');
   }
 
-  async startSession(learnerId: string, opts: Pick<Session, 'assessmentLang' | 'contentVersion'>): Promise<Session> {
+  async startSession(learnerId: string, opts: Pick<Session, 'assessmentLang' | 'contentVersion' | 'rubricVersion'>): Promise<Session> {
     if (!(await this.learner(learnerId))) throw new Error('Learner not found');
     const prior = (await this.sessions(learnerId)).find((s) => s.status === 'completed');
     const s: Session = {
@@ -171,6 +171,7 @@ export class Workspace {
       predecessorId: prior?.id,
       contentVersion: opts.contentVersion,
       assessmentLang: opts.assessmentLang,
+      ...(opts.rubricVersion ? { rubricVersion: opts.rubricVersion } : {}),
       status: 'draft',
       startedAt: nowIso(),
       updatedAt: nowIso(),
@@ -185,6 +186,18 @@ export class Workspace {
   /** Persist the presented item BEFORE it is shown so resume restores the same question. */
   async present(sessionId: string, item: PresentedItem): Promise<Session> {
     return this.mutate(sessionId, (s) => ({ ...s, current: item }));
+  }
+
+  /**
+   * "Different question": show `item` instead of the current one, and remember the
+   * replaced item so it is not offered again in this session. Not an attempt.
+   */
+  async replaceCurrent(sessionId: string, item: PresentedItem): Promise<Session> {
+    return this.mutate(sessionId, (s) => ({
+      ...s,
+      current: item,
+      shownNotAttempted: s.current ? [...(s.shownNotAttempted ?? []), s.current.itemId] : s.shownNotAttempted,
+    }));
   }
 
   /** Commit an answer and advance the cursor atomically. */

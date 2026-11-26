@@ -2,26 +2,27 @@ import { useState } from 'react';
 import { go, useApp, useAsync, useWs } from '../app/context';
 import { Empty, ErrorBox, Loading, SkillLabel, StatusPill, fmtDate } from '../app/ui';
 import { CONTENT_VERSION, orderedSkills } from '../content/skills';
-import { LANG_NAMES } from '../content/i18n';
+import { RUBRIC_VERSION } from '../content/rubric';
+import { LANG_NAMES, t } from '../content/i18n';
 import { LANGS, type LangCode, type Session } from '../domain/types';
-import { summarise } from '../assess/stubEngine';
+import { summarise } from '../assess/engine';
 
 export function LearnerDetail({ id }: { id: string }) {
   const ws = useWs();
-  const { uiLang } = useApp();
-  const [assessLang, setAssessLang] = useState<LangCode>(uiLang);
+  const { uiLang: L } = useApp();
+  const [assessLang, setAssessLang] = useState<LangCode>(L);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const data = useAsync(async () => ({ learner: await ws.learner(id), sessions: await ws.sessions(id) }), [id, ws.teacherId]);
 
-  if (data.loading && !data.data) return <Loading />;
+  if (data.loading && !data.data) return <Loading label={t(L, 'common.loading')} />;
   const learner = data.data?.learner;
-  if (!learner) return <ErrorBox title="Learner not found in your workspace">They may belong to another teacher on this phone, or were deleted. <a href="#/">Back to learners</a></ErrorBox>;
+  if (!learner) return <ErrorBox title={t(L, 'learner.notFound')}>{t(L, 'learner.notFoundHint')} <a href="#/">{t(L, 'learner.back')}</a></ErrorBox>;
   const sessions = data.data!.sessions;
   const completed = sessions.filter((s) => s.status === 'completed');
   const draft = sessions.find((s) => s.status === 'draft');
 
   async function start() {
-    const s = await ws.startSession(id, { assessmentLang: assessLang, contentVersion: CONTENT_VERSION });
+    const s = await ws.startSession(id, { assessmentLang: assessLang, contentVersion: CONTENT_VERSION, rubricVersion: RUBRIC_VERSION });
     go(`/assess/${s.id}`);
   }
 
@@ -32,45 +33,45 @@ export function LearnerDetail({ id }: { id: string }) {
 
   return (
     <div className="stack">
-      <a href="#/" className="back">← Learners</a>
+      <a href="#/" className="back">{t(L, 'learner.back')}</a>
       <div>
         <h1 className="mono">{learner.id}</h1>
         <p className="muted">
           {learner.label ? `${learner.label} · ` : ''}
-          {learner.ageBand ? `Age ${learner.ageBand} · ` : ''}
-          added {fmtDate(learner.createdAt)}
-          {learner.source === 'transfer' ? ' · transferred in' : ''}
+          {learner.ageBand ? `${t(L, 'common.age', { age: learner.ageBand })} · ` : ''}
+          {t(L, 'learner.added', { date: fmtDate(learner.createdAt) })}
+          {learner.source === 'transfer' ? ` · ${t(L, 'roster.transferredIn')}` : ''}
         </p>
       </div>
 
       <section className="card stack">
         {draft ? (
           <>
-            <h2>Assessment in progress</h2>
-            <p className="muted">{draft.attempts.length} answered · in {LANG_NAMES[draft.assessmentLang].native}</p>
-            <a className="button primary" href={`#/assess/${draft.id}`}>Resume assessment</a>
+            <h2>{t(L, 'learner.inProgress')}</h2>
+            <p className="muted">{t(L, 'assess.answered', { n: draft.attempts.length })} · {LANG_NAMES[draft.assessmentLang].native}</p>
+            <a className="button primary" href={`#/assess/${draft.id}`}>{t(L, 'learner.resume')}</a>
           </>
         ) : (
           <>
-            <h2>{completed.length ? 'Reassess' : 'Start assessment'}</h2>
+            <h2>{completed.length ? t(L, 'learner.reassessTitle') : t(L, 'learner.startTitle')}</h2>
             <label>
-              Learner’s strongest language (assessment language)
+              {t(L, 'learner.assessLang')}
               <select value={assessLang} onChange={(e) => setAssessLang(e.target.value as LangCode)}>
                 {LANGS.map((l) => <option key={l} value={l}>{LANG_NAMES[l].native} — {LANG_NAMES[l].english}</option>)}
               </select>
             </label>
-            <p className="small muted">This is independent of the interface language you read the app in.</p>
-            <button className="primary" onClick={start}>{completed.length ? 'Start reassessment' : 'Start assessment'}</button>
+            <p className="small muted">{t(L, 'learner.assessLangHint')}</p>
+            <button className="primary" onClick={start}>{completed.length ? t(L, 'learner.reassess') : t(L, 'learner.start')}</button>
           </>
         )}
       </section>
 
-      {completed.length >= 2 && <Progress latest={completed[0]} previous={completed[1]} lang={uiLang} />}
+      {completed.length >= 2 && <Progress latest={completed[0]} previous={completed[1]} lang={L} />}
 
       <section className="card">
-        <h2>History</h2>
+        <h2>{t(L, 'learner.history')}</h2>
         {completed.length === 0 ? (
-          <Empty title="No completed assessments yet" />
+          <Empty title={t(L, 'learner.noHistory')} />
         ) : (
           <ul className="list">
             {completed.map((s) => (
@@ -81,11 +82,11 @@ export function LearnerDetail({ id }: { id: string }) {
                 </div>
                 <div className="pills">
                   {summarise(s).map((x) => (
-                    <span key={x.skillId} className="pill-line"><SkillLabel id={x.skillId} lang={uiLang} /> <StatusPill status={x.status} lang={uiLang} /></span>
+                    <span key={x.skillId} className="pill-line"><SkillLabel id={x.skillId} lang={L} /> <StatusPill status={x.status} lang={L} /></span>
                   ))}
                 </div>
                 <div className="row">
-                  <a className="button" href={`#/transfer/${s.id}`}>Transfer slip</a>
+                  <a className="button" href={`#/transfer/${s.id}`}>{t(L, 'learner.slip')}</a>
                 </div>
               </li>
             ))}
@@ -94,15 +95,15 @@ export function LearnerDetail({ id }: { id: string }) {
       </section>
 
       <section className="card stack danger-zone">
-        <h2>Delete learner</h2>
+        <h2>{t(L, 'learner.delete')}</h2>
         {!confirmDelete ? (
-          <button onClick={() => setConfirmDelete(true)}>Delete from this phone…</button>
+          <button onClick={() => setConfirmDelete(true)}>{t(L, 'learner.deleteAsk')}</button>
         ) : (
           <>
-            <p>This permanently removes <strong className="mono">{learner.id}</strong> and {sessions.length} assessment record{sessions.length === 1 ? '' : 's'} from this phone. It cannot be undone. Transfer slips already given out are not affected.</p>
+            <p>{t(L, 'learner.deleteWarn', { id: learner.id, n: sessions.length })}</p>
             <div className="row">
-              <button className="danger" onClick={remove}>Delete permanently</button>
-              <button onClick={() => setConfirmDelete(false)}>Cancel</button>
+              <button className="danger" onClick={remove}>{t(L, 'learner.deleteConfirm')}</button>
+              <button onClick={() => setConfirmDelete(false)}>{t(L, 'common.cancel')}</button>
             </div>
           </>
         )}
@@ -117,9 +118,9 @@ function Progress({ latest, previous, lang }: { latest: Session; previous: Sessi
   const rows = orderedSkills().filter((s) => now[s.id] || before[s.id]);
   return (
     <section className="card">
-      <h2>Progress since {fmtDate(previous.completedAt)}</h2>
+      <h2>{t(lang, 'learner.progress', { date: fmtDate(previous.completedAt) })}</h2>
       <table className="table">
-        <thead><tr><th>Skill</th><th>Before</th><th>Now</th></tr></thead>
+        <thead><tr><th>{t(lang, 'learner.skill')}</th><th>{t(lang, 'learner.before')}</th><th>{t(lang, 'learner.now')}</th></tr></thead>
         <tbody>
           {rows.map((s) => (
             <tr key={s.id}>

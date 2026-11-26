@@ -30,6 +30,7 @@
    - `VITE_COGNITO_REGION`
    - `VITE_COGNITO_USER_POOL_ID`
    - `VITE_COGNITO_CLIENT_ID`
+   - `VITE_AUDIO_BASE_URL` (where the audio packs are published, e.g. `https://<audio-host>/packs`; each language at `<base>/<lang>/manifest.json`)
    - **Never put a secret here.** Every `VITE_*` value is visible in the browser.
 5. Caching is set in [`public/_headers`](../public/_headers), which Vite copies into `dist/`:
    - `sw.js`, `index.html` and the manifest are `no-cache`, so updates reach phones.

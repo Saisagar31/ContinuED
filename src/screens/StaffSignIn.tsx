@@ -3,11 +3,12 @@
  * workspace; this screen only connects that profile to school services (sync, signed
  * transfers, school trends). Everything else keeps working offline without it.
  *
- * Strings are a local map for now; task 09 (Ramith) owns the reviewed language packs.
- * The keys below should move into src/content/i18n.ts when those packs are ready.
+ * Text comes from the language packs (staff.* keys in src/content/packs). STAFF_STRINGS
+ * below is the English source those keys were created from; it is kept for reference.
  */
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useApp } from '../app/context';
+import { t } from '../content/i18n';
 import { ErrorBox, Notice } from '../app/ui';
 import type { SessionState, SignInOutcome, StaffSession } from '../auth/session';
 
@@ -58,13 +59,13 @@ export const STAFF_STRINGS = {
 } as const;
 
 export type StaffStringKey = keyof typeof STAFF_STRINGS;
-const s = (k: StaffStringKey) => STAFF_STRINGS[k];
-const errText = (code: string) => STAFF_STRINGS[`staff.err.${code}` as StaffStringKey] ?? STAFF_STRINGS['staff.err.unknown'];
 
 type Step = 'credentials' | 'new_password' | 'mfa';
 
 export function StaffSignIn({ session, onDone, onCancel }: { session: StaffSession | null; onDone?: () => void; onCancel?: () => void }) {
-  const { online } = useApp();
+  const { online, uiLang } = useApp();
+  const s = (k: StaffStringKey) => t(uiLang, k);
+  const errText = (code: string) => (`staff.err.${code}` in STAFF_STRINGS ? s(`staff.err.${code}` as StaffStringKey) : s('staff.err.unknown'));
   const [state, setState] = useState<SessionState>(() => session?.state() ?? { status: 'signed_out' });
   const [step, setStep] = useState<Step>('credentials');
   const [email, setEmail] = useState('');
