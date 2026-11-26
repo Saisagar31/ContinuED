@@ -34,8 +34,13 @@ export function Groups() {
 
   return (
     <div className="stack">
-      <h1>{t(L, 'groups.title')}</h1>
-      <p className="muted small">{t(L, 'groups.intro')}</p>
+      <header className="classroom-header groups-header">
+        <div>
+          <h1>{t(L, 'groups.title')}</h1>
+          <p>{t(L, 'groups.intro')}</p>
+        </div>
+        <img className="classroom-art" src="/illustrations/reading-circle.webp" width="544" height="266" alt="" />
+      </header>
       {groups.size === 0 && <Empty title={t(L, 'groups.empty')}>{t(L, 'groups.emptyHint')}</Empty>}
       {[...groups].map(([key, members]) => (
         <section key={key} className="card">

@@ -205,8 +205,220 @@ label { display: flex; flex-direction: column; gap: .3rem; font-weight: 550; }
 .bar-fill { height: 100%; background: var(--brand); border-radius: 999px; }
 .bar-fill.suppressed { background: repeating-linear-gradient(45deg, var(--line) 0 6px, transparent 6px 12px); }
 
+/* ClassDojo-inspired visual system for the existing teacher workflows. */
+:root {
+  --bg: #f8f7fc;
+  --surface: #fff;
+  --ink: #171527;
+  --muted: #585570;
+  --line: #e8e6f1;
+  --brand: #6835d6;
+  --brand-ink: #fff;
+  --accent: #97df0d;
+  --focus: #6835d6;
+  --radius: 24px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #0d0a14; --surface: #1c1922; --ink: #faf7ff;
+    --muted: #c4bfd0; --line: #34313a; --brand: #9969ff;
+    --brand-ink: #120925; --accent: #a8e94a; --focus: #b99aff;
+  }
+}
+body { font-family: Ginto, 'Segoe UI', system-ui, 'Noto Sans', sans-serif; }
+h1, h2, h3 { font-family: Melun, 'Segoe UI', system-ui, sans-serif; letter-spacing: -.025em; }
+h1 { font-size: clamp(1.9rem, 5vw, 2.7rem); line-height: 1.12; }
+h2 { font-size: 1.25rem; line-height: 1.25; }
+.topbar {
+  padding: 12px max(20px, calc((100vw - 1120px) / 2));
+  gap: 14px; background: var(--surface); color: var(--ink);
+  border-bottom: 1px solid var(--line); box-shadow: 0 1px 2px #0000000d;
+}
+.topbar .brand { color: var(--brand); font-size: 1.3rem; letter-spacing: -.04em; }
+.topbar select { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 14px; min-height: 44px; padding: .45rem .7rem; }
+.topbar .link { color: var(--ink); font-weight: 600; }
+.main { max-width: 760px; padding: 32px 20px 110px; }
+.stack { gap: 1.1rem; }
+.card { border-radius: 24px; padding: 24px; box-shadow: 0 1px 2px #0000000d; }
+.list.card { padding: 0 24px; }
+.list-link { padding: 1rem 0; }
+button, .button { border-radius: 14px; min-height: 48px; padding: .7rem 1.2rem; font-weight: 650; transition: background-color .16s, box-shadow .16s; }
+button:not(:disabled):hover, .button:hover { box-shadow: 0 4px 6px -1px #00000019; }
+.primary { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+.primary:hover { filter: brightness(.94); }
+.link { min-height: 0; padding: 0; box-shadow: none !important; }
+input, select, textarea { border-radius: 14px; padding: .75rem .9rem; }
+.topbar .link { padding: .4rem 0; }
+.tabbar { max-width: 720px; margin: 0 auto 16px; left: 16px; right: 16px; border: 1px solid var(--line); border-radius: 24px; box-shadow: 0 4px 6px -1px #00000019; overflow: hidden; }
+.tabbar a { gap: 2px; padding: .6rem .15rem; }
+.tabbar a[aria-current='page'] { color: var(--brand); background: color-mix(in srgb, var(--brand) 10%, var(--surface)); }
+.signin { max-width: 520px; padding: clamp(32px, 8vh, 80px) 20px; gap: 1.4rem; }
+.signin h1 { font-size: clamp(2.5rem, 8vw, 3.5rem); }
+.signin .card { padding: clamp(24px, 5vw, 36px); }
+.empty, .loading, .error, .notice { padding: 20px; }
+.empty { background: var(--surface); border-style: solid; padding: 36px 24px; }
+.question .prompt { font-size: clamp(1.65rem, 5vw, 2.15rem); letter-spacing: -.025em; }
+.question .stimulus { background: color-mix(in srgb, var(--brand) 5%, var(--surface)); border-color: var(--line); border-radius: 18px; }
+.obs-grid { gap: .75rem; }
+.obs { border-radius: 18px; padding: 1rem; }
+.seg label, .seg button, .profile { border-radius: 14px; }
+.profile.on { background: color-mix(in srgb, var(--brand) 8%, var(--surface)); }
+.activity { border-color: var(--accent); padding-left: 1rem; }
+@media (max-width: 520px) {
+  .topbar { padding: 10px 16px; gap: 8px 12px; }
+  .main { padding: 24px 16px 112px; }
+  .card { padding: 20px; }
+  .list.card { padding: 0 20px; }
+  .tabbar { margin-bottom: max(10px, env(safe-area-inset-bottom)); }
+}
+@media (prefers-reduced-motion: reduce) { button, .button { transition: none; } }
+
+/* A more expressive workspace layout, using the same screens and controls. */
+.signin {
+  position: relative;
+  max-width: none;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(320px, 470px);
+  grid-template-rows: auto 1fr auto;
+  align-content: center;
+  align-items: center;
+  column-gap: clamp(32px, 7vw, 112px);
+  padding: 32px clamp(24px, 8vw, 128px) 48px;
+  overflow: hidden;
+}
+.signin > .row { grid-column: 1 / -1; align-self: start; }
+.signin > .row h1 { font-size: 1.8rem; }
+.signin-intro { display: grid; justify-items: start; gap: clamp(16px, 3vh, 32px); }
+.signin-intro p {
+  max-width: 16ch;
+  margin: 0;
+  color: #281846;
+  font: 750 clamp(2.5rem, 4.3vw, 4.5rem)/1.08 Melun, 'Segoe UI', system-ui, sans-serif;
+  letter-spacing: -.045em;
+  text-wrap: balance;
+}
+.classroom-art { display: block; width: 100%; height: auto; transform-origin: 50% 94%; }
+.welcome-art { width: min(85%, 340px); justify-self: center; }
+.signin > form {
+  grid-column: 2;
+  grid-row: 2;
+  width: 100%;
+  padding: clamp(28px, 4vw, 48px) !important;
+  border: 1px solid var(--line);
+  box-shadow: 0 4px 6px -1px #00000012, 0 1px 2px #0000000d;
+}
+.signin > form h2 { font-size: clamp(1.5rem, 3vw, 2rem); margin-bottom: .5rem; }
+.signin > form .primary { min-height: 56px; border-radius: 999px; }
+.signin > .notice { grid-column: 2; width: 100%; align-self: start; }
+.signin input:not([type="radio"]) { min-height: 54px; }
+.main > .stack > .row:first-child { margin-bottom: .65rem; }
+.main > .stack > .row:first-child h1 { max-width: 70%; }
+.main > .stack > .row:first-child .primary { border-radius: 999px; padding-inline: 1.5rem; }
+.card { box-shadow: 0 2px 5px #2720470a; }
+.empty { border: 0; background: color-mix(in srgb, var(--brand) 7%, var(--surface)); padding: 52px 28px; }
+.empty strong { font-size: 1.3rem; }
+.search input { min-height: 56px; padding-inline: 22px; box-shadow: 0 1px 2px #0000000a; }
+.question { border-top: 7px solid var(--accent); }
+.question .prompt { margin: 1rem 0; }
+.obs { min-height: 100px; }
+@media (min-width: 800px) {
+  .shell { padding-left: 210px; }
+  .topbar { padding-inline: 32px; }
+  .tabbar {
+    top: 0; bottom: 0; left: 0; right: auto;
+    width: 210px; max-width: none; margin: 0; padding: 112px 14px 20px;
+    display: flex; flex-direction: column; gap: 8px;
+    border-radius: 0; border: 0; border-right: 1px solid var(--line);
+    box-shadow: none; overflow: visible;
+  }
+  .tabbar a { flex-direction: row; justify-content: flex-start; gap: 14px; min-height: 54px; padding: 12px 18px; border-radius: 14px; font-size: .95rem; }
+  .tabbar a span { width: 24px; text-align: center; }
+  .main { padding: 48px 32px 72px; }
+}
+@media (max-width: 799px) {
+  .signin { min-height: 100dvh; display: flex; padding: 24px 20px 40px; gap: 24px; }
+  .signin > .row { width: 100%; }
+  .signin > form, .signin > .notice { width: 100%; }
+  .signin > form { padding: 28px !important; }
+}
+
+/* Large, friendly colour blocks give the classroom workspace its own identity. */
+.signin {
+  /* This screen uses light surfaces in both system themes. */
+  --surface: #fff;
+  --ink: #171527;
+  --muted: #585570;
+  --line: #ded9ed;
+  --brand: #6835d6;
+  --brand-ink: #fff;
+  --focus: #6835d6;
+  background: linear-gradient(110deg, #ede6ff 0%, #f6f2ff 55%, #ffffff 55%);
+}
+.signin > form { background: #fff; color: #171527; }
+.signin > form input { background: #f8f7fc; color: #171527; border-color: #ded9ed; }
+.signin .profile { color: #171527; background: #fff; }
+.signin .profile.on { color: #171527; background: #f0eaff; border-color: #6835d6; }
+.signin .profile input { accent-color: #6835d6; }
+.signin > .row h1 { font-size: 2rem; font-weight: 850; }
+.signin > .notice { background: #f2eff9; color: #514a66; }
+.classroom-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, .75fr);
+  align-items: center;
+  gap: clamp(12px, 3vw, 32px);
+  padding: clamp(20px, 4vw, 36px);
+  border-radius: 28px;
+  background: radial-gradient(ellipse at 95% 120%, #dccdff 0 43%, transparent 43.3%), #f0eaff;
+  color: #28164a;
+}
+.classroom-header h1 { color: inherit; overflow-wrap: anywhere; }
+.classroom-header p { margin: .65rem 0 0; }
+.classroom-header button { margin-top: 1rem; border-radius: 99px; }
+.classroom-header img { max-width: 270px; justify-self: end; }
+.groups-header { background: radial-gradient(ellipse at 95% 120%, #cce8c7 0 43%, transparent 43.3%), #ecf5e7; }
+.transfer-header { background: radial-gradient(ellipse at 95% 120%, #ffdbac 0 43%, transparent 43.3%), #fff1dc; }
+.transfer-header img { max-width: 205px; }
+.roster-screen .empty { background: var(--surface); border: 1px solid var(--line); }
+
+@media (max-width: 799px) {
+  .signin { background: linear-gradient(168deg, #ede6ff, #faf8ff 68%, white); }
+  .signin-intro { width: 100%; max-width: 560px; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: center; gap: 10px; }
+  .signin-intro p { font-size: clamp(1.5rem, 5.8vw, 2.8rem); }
+  .welcome-art { width: 100%; }
+  .signin > form, .signin > .notice { max-width: 560px; }
+  .signin > form { box-shadow: 0 8px 24px #3e26751a; }
+}
+@media (max-width: 480px) {
+  .classroom-header { padding: 20px 16px; gap: 10px; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+  .classroom-header h1 { font-size: 1.65rem; }
+  .groups-header { grid-template-columns: minmax(0, 1fr); }
+  .groups-header img { width: 48%; }
+}
+@media screen and (prefers-reduced-motion: no-preference) {
+  .classroom-art { animation: book-settle 640ms ease-out both; }
+  .welcome-art { animation: welcome-hop 900ms ease-in-out both; }
+  .plane-art { animation: passport-arrive 750ms ease-out both; }
+}
+@keyframes welcome-hop {
+  0% { transform: translateY(5px) rotate(-3deg); }
+  35% { transform: translateY(-9px) rotate(2deg); }
+  70% { transform: translateY(0) rotate(-1deg); }
+  100% { transform: none; }
+}
+@keyframes book-settle {
+  from { transform: translateY(7px) rotate(-2deg); }
+  65% { transform: translateY(-2px) rotate(.5deg); }
+  to { transform: none; }
+}
+@keyframes passport-arrive {
+  from { transform: translate(-18px, 9px) rotate(-6deg); }
+  70% { transform: translate(2px, -2px) rotate(1deg); }
+  to { transform: none; }
+}
+
 @media print {
-  .no-print, .topbar, .tabbar, .offline-bar, .draft-bar, .notice { display: none !important; }
+  .classroom-art, .no-print, .topbar, .tabbar, .offline-bar, .draft-bar, .notice { display: none !important; }
   body { background: #fff; color: #000; }
   .main { padding: 0; max-width: none; }
   .card { border: 1px solid #000; break-inside: avoid; }

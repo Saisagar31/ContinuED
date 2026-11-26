@@ -22,11 +22,14 @@ export function Roster() {
   const shown = learners.filter((l) => !needle || l.id.includes(needle) || (l.label ?? '').toUpperCase().includes(needle));
 
   return (
-    <div className="stack">
-      <div className="row between">
-        <h1>{t(L, 'roster.title')}</h1>
-        <button className="primary" onClick={() => setAdding(true)}>{t(L, 'roster.add')}</button>
-      </div>
+    <div className="stack roster-screen">
+      <header className="classroom-header">
+        <div>
+          <h1>{t(L, 'roster.title')}</h1>
+          <button className="primary" onClick={() => setAdding(true)}>{t(L, 'roster.add')}</button>
+        </div>
+        <img className="classroom-art" src="/illustrations/reading-circle.webp" width="544" height="266" alt="" />
+      </header>
 
       {adding && <AddLearner onDone={(id) => { setAdding(false); if (id) go(`/learner/${id}`); else data.reload(); }} />}
 
