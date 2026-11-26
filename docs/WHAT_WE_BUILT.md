@@ -26,6 +26,16 @@ A running diary of what's in this repo, written so anyone (teammates, judges, fu
 
 ---
 
+## 26 Nov 2026: Two new optional fields on a saved session (Omkar, task 02, branch `omkar/02-foundation`)
+
+**In simple terms:** after reviewing Ramith's assessment engine, we added two optional fields to what's saved for each assessment session.
+- **`rubricVersion`:** which version of the marking rules was used. The plan says evidence and rules must stay together.
+- **`shownNotAttempted`:** questions the teacher swapped out with "Different question", so they don't come back later in the same session.
+
+Both are optional, so sessions saved earlier still open. The example audio list now uses the same clip names as Ramith's language packs (`num.sub_borrow.oral`).
+
+---
+
 ## 26 Nov 2026: Foundation: shared contracts, API skeleton, test fixtures, CI (Omkar, task 02, branch `omkar/02-foundation`)
 
 **In simple terms:** we set up the ground rules and safety checks so 4 people can build at once without breaking each other's work.
