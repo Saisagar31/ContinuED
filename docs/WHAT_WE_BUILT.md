@@ -4,6 +4,21 @@ A running diary of what's in this repo, written so anyone (teammates, judges, fu
 
 ---
 
+## 26 Nov 2026: Deploy and rollback runbook (Omkar, task 13, branch `omkar/13-staging-runbook`)
+
+**In simple terms:** step-by-step instructions for putting the app online safely, and for undoing a bad release. **Nothing has been deployed yet:** we still need the AWS, Cloudflare and ElevenLabs accounts.
+- **`docs/DEPLOY.md`** covers:
+  - two separate environments, staging (fake data only) and production
+  - how to connect Cloudflare Pages
+  - how to deploy the AWS backend and audio packs
+  - the checks and drills to run on staging
+  - how to roll back each part
+  - a "release record" form to fill in for every release
+- **`public/_headers`:** tells phones to always re-check the app's start-up files (so updates arrive), and lets them keep the rest for a year.
+- **Important:** the repo is on Sai's personal GitHub account, so **Sai has to connect Cloudflare Pages** (Cloudflare won't list another person's repos).
+
+---
+
 ## 26 Nov 2026: School services: sign-in, sync, signing, dashboard numbers (Omkar, task 11, branch `omkar/11-school-services`)
 
 **In simple terms:** the school server can now take sync uploads from teacher phones, stamp transfers as genuine, and give school and district leads their counts. One school can never see another school's data.
