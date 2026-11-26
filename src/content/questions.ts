@@ -41,7 +41,7 @@ export interface QuestionItem {
   audio: AudioPolicy;
   /** Exact text an approved clip for this item must contain ('' when audio is 'none'). */
   spoken: string;
-  /** Clip lookup ID: shared per family when the instruction never changes. */
+  /** Clip lookup ID: shared per family when the instruction never changes, otherwise family-scoped (see audioContentIdFor). */
   audioContentId: string;
 }
 
@@ -322,8 +322,21 @@ export function buildItem(familyId: string, key: string, band: Band, lang: LangC
     scoring: pack(lang).skills[f.skillId].rubric.mastered,
     audio: f.audio,
     spoken: f.audio === 'none' ? '' : r.prompt,
-    audioContentId: f.audio === 'instruction' && fixedInstruction ? `${f.id}.instruction` : itemId,
+    audioContentId: audioContentIdFor(f.id, f.audio, fixedInstruction, itemId),
   };
+}
+
+/**
+ * Clip lookup ID for an item. A fixed instruction is one clip per family. Any
+ * other voiced prompt is scoped to its family, because two families can share
+ * one canonical itemId (is.ask and is.same both use "lit.initial_sounds:<lang>:<word>")
+ * while saying different things; without the family prefix both would look up
+ * the same clip. The audio build (scripts/audio/catalog.ts) reads this value
+ * from the items, so the two can never drift apart.
+ */
+function audioContentIdFor(familyId: string, audio: AudioPolicy, fixedInstruction: boolean, itemId: string): string {
+  if (audio === 'instruction' && fixedInstruction) return `${familyId}.instruction`;
+  return itemId.startsWith(`${familyId}:`) ? itemId : `${familyId}:${itemId}`;
 }
 
 /** Every item for a skill and band in `lang`, one per canonical identity, minus `seen`. */
