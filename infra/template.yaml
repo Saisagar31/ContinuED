@@ -1,0 +1,240 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  ContinuED school services (task 11): Cognito staff sign-in, HTTP API with JWT
+  authorizer, one Lambda, DynamoDB single table, KMS issuer signing key, budget alert.
+  NOT YET DEPLOYED — see infra/README.md.
+
+Parameters:
+  Stage:
+    Type: String
+    AllowedValues: [staging, prod]
+  BudgetEmail:
+    Type: String
+    Description: Address that receives budget alerts.
+  AllowedOrigin:
+    Type: String
+    Description: HTTPS origin of the teacher PWA for CORS, e.g. https://continued-staging.pages.dev
+  RetentionDays:
+    Type: Number
+    Default: 365
+    MinValue: 1
+    Description: Days to keep raw sync events before DynamoDB TTL deletes them (aggregate counters are kept).
+  IssuerKid:
+    Type: String
+    Default: issuer-1
+    AllowedPattern: '^[A-Za-z0-9._-]{1,64}$'
+    Description: kid that POST /sign reports for the KMS key; must match an entry in TrustJson.
+  TrustJson:
+    Type: String
+    Default: '{"keys":[],"revoked":[]}'
+    Description: Public trust list {"keys":[...],"revoked":[...]} (public JWKs only). See README "Publish the trust list".
+
+Resources:
+  # ---------------------------------------------------------------- Cognito
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub continued-staff-${Stage}
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true # staff are enrolled by an administrator; no self sign-up
+      UsernameAttributes: [email]
+      AutoVerifiedAttributes: [email]
+      # OPTIONAL rather than ON: the PWA sign-in flow does not handle the TOTP setup challenge yet.
+      MfaConfiguration: OPTIONAL
+      EnabledMfas: [SOFTWARE_TOKEN_MFA]
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 12
+          RequireLowercase: true
+          RequireUppercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 1
+      Schema:
+        - Name: school_id
+          AttributeDataType: String
+          Mutable: true
+          StringAttributeConstraints: { MinLength: '1', MaxLength: '64' }
+        - Name: district
+          AttributeDataType: String
+          Mutable: true
+          StringAttributeConstraints: { MinLength: '0', MaxLength: '64' }
+
+  TeacherGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties: { UserPoolId: !Ref UserPool, GroupName: teacher, Description: Classroom teacher }
+  SchoolLeadGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties: { UserPoolId: !Ref UserPool, GroupName: school_lead, Description: Head teacher / school lead }
+  DistrictLeadGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    Properties: { UserPoolId: !Ref UserPool, GroupName: district_lead, Description: District education officer }
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref UserPool
+      ClientName: !Sub continued-pwa-${Stage}
+      GenerateSecret: false # public browser client
+      # USER_PASSWORD_AUTH: the PWA (src/auth/cognito.ts) sends the password over TLS to Cognito.
+      # SRP is kept so a later SRP client can switch without a template change.
+      # REFRESH_TOKEN_AUTH only works while refresh-token rotation is OFF (it is not enabled here).
+      ExplicitAuthFlows: [ALLOW_USER_SRP_AUTH, ALLOW_USER_PASSWORD_AUTH, ALLOW_REFRESH_TOKEN_AUTH]
+      PreventUserExistenceErrors: ENABLED
+      EnableTokenRevocation: true
+      IdTokenValidity: 60
+      AccessTokenValidity: 60
+      RefreshTokenValidity: 30
+      TokenValidityUnits: { IdToken: minutes, AccessToken: minutes, RefreshToken: days }
+      ReadAttributes: [email, email_verified, custom:school_id, custom:district]
+      # Users must NOT be able to change their own tenant: custom attributes are left out.
+      WriteAttributes: [email]
+
+  # ---------------------------------------------------------------- Data
+  Table:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      TableName: !Sub continued-${Stage}
+      BillingMode: PROVISIONED
+      ProvisionedThroughput: { ReadCapacityUnits: 5, WriteCapacityUnits: 5 }
+      AttributeDefinitions:
+        - { AttributeName: PK, AttributeType: S }
+        - { AttributeName: SK, AttributeType: S }
+      KeySchema:
+        - { AttributeName: PK, KeyType: HASH }
+        - { AttributeName: SK, KeyType: RANGE }
+      PointInTimeRecoverySpecification: { PointInTimeRecoveryEnabled: true }
+      TimeToLiveSpecification: { AttributeName: expiresAt, Enabled: true }
+      SSESpecification: { SSEEnabled: true }
+
+  # ---------------------------------------------------------------- Signing key
+  IssuerKey:
+    Type: AWS::KMS::Key
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Description: !Sub ContinuED transfer issuer signing key (${Stage})
+      KeySpec: ECC_NIST_P256
+      KeyUsage: SIGN_VERIFY
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          # Standard default: lets IAM policies in this account grant access (the Lambda role below gets kms:Sign only).
+          - Sid: AccountAdministration
+            Effect: Allow
+            Principal: { AWS: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:root' }
+            Action: 'kms:*'
+            Resource: '*'
+
+  IssuerKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub alias/continued-issuer-${Stage}
+      TargetKeyId: !Ref IssuerKey
+
+  # ---------------------------------------------------------------- API
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: $default
+      CorsConfiguration:
+        AllowOrigins: [!Ref AllowedOrigin]
+        AllowHeaders: [authorization, content-type]
+        AllowMethods: [GET, POST, DELETE, OPTIONS]
+        MaxAge: 600
+      Auth:
+        DefaultAuthorizer: CognitoJwt
+        Authorizers:
+          CognitoJwt:
+            IdentitySource: $request.header.Authorization
+            JwtConfiguration:
+              issuer: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}
+              audience: [!Ref UserPoolClient] # ID tokens carry aud = app client ID
+
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub continued-api-${Stage}
+      CodeUri: ../api/dist # run `npm run api:bundle` first
+      Handler: lambda.handler
+      Runtime: nodejs22.x
+      Architectures: [arm64]
+      MemorySize: 256
+      Timeout: 10
+      Environment:
+        Variables:
+          NODE_ENV: production
+          TABLE_NAME: !Ref Table
+          USER_POOL_ID: !Ref UserPool
+          USER_POOL_CLIENT_ID: !Ref UserPoolClient
+          KMS_KEY_ID: !GetAtt IssuerKey.Arn
+          ISSUER_KID: !Ref IssuerKid
+          TRUST_JSON: !Ref TrustJson
+          RETENTION_DAYS: !Ref RetentionDays
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:Query
+                - dynamodb:DeleteItem
+                - dynamodb:TransactWriteItems
+                - dynamodb:ConditionCheckItem
+              Resource: !GetAtt Table.Arn
+            - Effect: Allow
+              Action: kms:Sign
+              Resource: !GetAtt IssuerKey.Arn
+      Events:
+        Health:
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: GET, Path: /health, Auth: { Authorizer: NONE } }
+        PostEvents:
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: POST, Path: /events }
+        GetAggregates:
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: GET, Path: /aggregates }
+        PostSign:
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: POST, Path: /sign }
+        GetTrust:
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: GET, Path: /trust }
+        DeleteLearner:
+          Type: HttpApi
+          Properties: { ApiId: !Ref HttpApi, Method: DELETE, Path: '/learners/{pseudonym}' }
+
+  # ---------------------------------------------------------------- Cost guard
+  MonthlyBudget:
+    Type: AWS::Budgets::Budget
+    Properties:
+      Budget:
+        BudgetName: !Sub continued-${Stage}-monthly
+        BudgetType: COST
+        TimeUnit: MONTHLY
+        BudgetLimit: { Amount: 1, Unit: USD }
+      NotificationsWithSubscribers:
+        - Notification: { NotificationType: ACTUAL, ComparisonOperator: GREATER_THAN, Threshold: 80, ThresholdType: PERCENTAGE }
+          Subscribers: [{ SubscriptionType: EMAIL, Address: !Ref BudgetEmail }]
+        - Notification: { NotificationType: FORECASTED, ComparisonOperator: GREATER_THAN, Threshold: 100, ThresholdType: PERCENTAGE }
+          Subscribers: [{ SubscriptionType: EMAIL, Address: !Ref BudgetEmail }]
+
+Outputs:
+  ApiUrl:
+    Value: !Sub https://${HttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}
+  UserPoolId:
+    Value: !Ref UserPool
+  UserPoolClientId:
+    Value: !Ref UserPoolClient
+  TableName:
+    Value: !Ref Table
+  IssuerKeyArn:
+    Value: !GetAtt IssuerKey.Arn

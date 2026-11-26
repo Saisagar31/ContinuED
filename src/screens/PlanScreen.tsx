@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { availabilityFor, playFor, type Availability } from '../audio/player';
 import { go, useApp, useAsync, useWs } from '../app/context';
 import { Empty, ErrorBox, Loading, Notice, SkillLabel, StatusPill, fmtDate } from '../app/ui';
-import { LANG_NAMES, packState, t } from '../content/i18n';
+import { LANG_NAMES, contentReviewed, t } from '../content/i18n';
 import { skillText } from '../content/packs';
 import { CONTENT_VERSION, SKILL_BY_ID } from '../content/skills';
 import { buildPlan } from '../plan/plan';
@@ -124,27 +125,29 @@ function OralCheck({ lang, skillId }: { lang: LangCode; skillId: string }) {
   const text = skillText(lang, skillId)?.oral ?? SKILL_BY_ID[skillId]?.oralCheck ?? '';
   const translation = uiLang !== lang ? skillText(uiLang, skillId)?.oral : undefined;
   const name = LANG_NAMES[lang].english;
-  const voice = typeof speechSynthesis !== 'undefined' ? speechSynthesis.getVoices().find((v) => v.lang.toLowerCase().startsWith(lang)) : undefined;
+  // Same clip ID the audio build uses for oral checks (src/content/packs fixedSpokenStrings).
+  const contentId = `${skillId}.oral`;
+  const [avail, setAvail] = useState<Availability>('text_only');
+  useEffect(() => {
+    let live = true;
+    void availabilityFor(lang, contentId).then((a) => live && setAvail(a));
+    return () => {
+      live = false;
+    };
+  }, [lang, contentId]);
+  const status = avail === 'clip' ? t(uiLang, 'oral.clip') : avail === 'device_speech' ? t(uiLang, 'oral.deviceSpeech') : t(uiLang, 'oral.noPack', { lang: name });
   return (
     <section className="card stack">
       <h3>{t(uiLang, 'plan.oral')} · <span lang={lang}>{LANG_NAMES[lang].native}</span></h3>
       <p lang={lang} className="prompt">{text}</p>
       {translation && <p className="small muted" lang={uiLang}>{translation}</p>}
       <div className="audio-state small">
-        <span className="tag">{t(uiLang, 'oral.noPack', { lang: name })}</span>
-        {packState(lang) !== 'complete' && <span className="tag">{t(uiLang, 'oral.draft', { lang: name })}</span>}
+        <span className="tag">{status}</span>
+        {!contentReviewed(lang) && <span className="tag">{t(uiLang, 'oral.draft', { lang: name })}</span>}
       </div>
-      {voice && (
-        <button
-          onClick={() => {
-            const u = new SpeechSynthesisUtterance(text);
-            u.voice = voice;
-            u.lang = voice.lang;
-            speechSynthesis.cancel();
-            speechSynthesis.speak(u);
-          }}
-        >
-          {t(uiLang, 'oral.play')}
+      {avail !== 'text_only' && (
+        <button className="no-print" onClick={() => void playFor(lang, contentId, text).then(setAvail)}>
+          {avail === 'clip' ? t(uiLang, 'audio.play') : t(uiLang, 'oral.play')}
         </button>
       )}
       <p className="small muted">{t(uiLang, 'oral.readYourself', { lang: name })}</p>

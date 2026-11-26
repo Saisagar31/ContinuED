@@ -21,14 +21,16 @@ export interface TransferEvent {
 
 // Moved to the shared contracts (task 02) so the API returns the same shape.
 import type { AggregateQuery, AggregateResponse, Count } from '../../shared/contracts';
+import { SUPPRESS_BELOW } from '../../shared/contracts';
 export type { AggregateQuery, AggregateResponse, Count };
 
 export interface AggregateSource {
   query(q: AggregateQuery): Promise<AggregateResponse>;
 }
 
-/** PLACEHOLDER — the school-approved suppression rule is an open decision (task 01). */
-export const SUPPRESS_BELOW = 5;
+/** PLACEHOLDER — the school-approved suppression rule is an open decision (task 01).
+ *  The value now lives in shared/contracts.ts so the API uses the same threshold. */
+export { SUPPRESS_BELOW };
 const suppress = (n: number): Count => (n > 0 && n < SUPPRESS_BELOW ? null : n);
 
 export function aggregate(events: TransferEvent[], q: AggregateQuery, schoolsTotal: number, asOf: string): AggregateResponse {
@@ -122,23 +124,28 @@ export function fixtureSource(opts: { events?: TransferEvent[]; failWhenOffline?
 
 const CACHE_KEY = 'continued.dashboard.cache.v1';
 
-export function cacheKey(q: AggregateQuery) {
-  return JSON.stringify([q.fromMonth, q.toMonth, q.district ?? '', q.originLang ?? '']);
+/**
+ * `scope` keeps different data sources apart in the offline cache (practice data
+ * vs. one teacher's school data), so a saved copy is never shown as the other.
+ */
+export function cacheKey(q: AggregateQuery, scope = '') {
+  const k = JSON.stringify([q.fromMonth, q.toMonth, q.district ?? '', q.originLang ?? '']);
+  return scope ? `${scope}|${k}` : k;
 }
 
-export function readCache(q: AggregateQuery): AggregateResponse | null {
+export function readCache(q: AggregateQuery, scope = ''): AggregateResponse | null {
   try {
     const all = JSON.parse(localStorage.getItem(CACHE_KEY) ?? '{}');
-    return all[cacheKey(q)] ?? null;
+    return all[cacheKey(q, scope)] ?? null;
   } catch {
     return null;
   }
 }
 
-export function writeCache(q: AggregateQuery, r: AggregateResponse) {
+export function writeCache(q: AggregateQuery, r: AggregateResponse, scope = '') {
   try {
     const all = JSON.parse(localStorage.getItem(CACHE_KEY) ?? '{}');
-    all[cacheKey(q)] = r;
+    all[cacheKey(q, scope)] = r;
     localStorage.setItem(CACHE_KEY, JSON.stringify(all));
   } catch {
     /* storage unavailable — dashboard still works online */

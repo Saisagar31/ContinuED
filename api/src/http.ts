@@ -8,6 +8,8 @@ export interface ApiRequest {
   query: Record<string, string>;
   headers: Record<string, string>; // lower-cased names
   body: unknown; // parsed JSON, or undefined
+  /** Values of "{name}" path segments, set by the router for pattern routes. */
+  params?: Record<string, string>;
   /** Verified identity, set by the auth layer (task 11). Undefined = anonymous. */
   auth?: AuthContext;
 }

@@ -4,12 +4,13 @@ import { ErrorBox, Loading, SkillLabel, StatusPill } from '../app/ui';
 import { skillName, t } from '../content/i18n';
 import { skillText } from '../content/packs';
 import { orderedSkills } from '../content/skills';
-import { evidenceFor, suggestStatusFor } from '../assess/engine';
+import { evidenceFor, suggestStatusFor, summarise } from '../assess/engine';
+import { assessmentCompletedEvent, record } from '../app/services';
 import { STATUSES, type SkillStatus } from '../domain/types';
 
 export function Review({ sessionId }: { sessionId: string }) {
   const ws = useWs();
-  const { uiLang: L } = useApp();
+  const { uiLang: L, staff } = useApp();
   const s = useAsync(() => ws.session(sessionId), [sessionId]);
   const [picked, setPicked] = useState<Record<string, SkillStatus>>({});
   const [reasons, setReasons] = useState<Record<string, string>>({});
@@ -36,7 +37,8 @@ export function Review({ sessionId }: { sessionId: string }) {
     if (overridesMissingReason.length) return setError(t(L, 'review.errReason'));
     const overrides: Record<string, { from: SkillStatus; reason: string }> = {};
     for (const r of rows) if (picked[r.sk.id] !== r.suggested) overrides[r.sk.id] = { from: r.suggested, reason: reasons[r.sk.id].trim() };
-    await ws.complete(session!.id, picked, overrides);
+    const done = await ws.complete(session!.id, picked, overrides);
+    void record(assessmentCompletedEvent(done, summarise(done)), staff);
     go(`/transfer/${session!.id}`);
   }
 

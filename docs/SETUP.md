@@ -12,10 +12,17 @@ npm ci                 # exact versions from package-lock.json
 |---|---|
 | `npm run dev` | Teacher app at http://localhost:5173. Use a phone-sized browser window. |
 | `npm run api:dev` | School API at http://localhost:8787. Check `GET /health` → `{"ok":true,...}`. |
+| `npm run api:bundle` | Bundles the Lambda into `api/dist/lambda.js` for `infra/` (see `infra/README.md`). |
 | `npm test` | All tests: app, API, and the frozen interface fixtures |
 | `npm run typecheck` | TypeScript checks for the app (`tsconfig.json`) and for Node code (`tsconfig.node.json`) |
 | `npm run build` | Production bundle in `dist/`, with the offline app shell |
 | `npm run ci` | Typecheck + test + build, the same as GitHub CI |
+
+### Dev sign-in for the local API
+The local API uses fake dev sign-in. Send `Authorization: Bearer dev:<schoolId>:<district>:<role>`, where role is `teacher`, `school_lead` or `district_lead`. The district can be left empty, for example `dev:SCH-A::teacher`.
+- These tokens are not signed, so anyone can claim to be any school.
+- Data is kept in memory and is lost when the server stops.
+- Dev sign-in works only in `api/dev-server.ts` and is refused when `NODE_ENV=production`. The deployed Lambda only accepts real Cognito tokens.
 
 ## Environment
 Copy `.env.example` to `.env.local` only if you need it. Every value is optional for local work. **Never commit `.env*` files.**

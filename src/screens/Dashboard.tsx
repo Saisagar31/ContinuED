@@ -13,6 +13,8 @@ import {
   type Count,
 } from '../dashboard/aggregates';
 import type { LangCode } from '../domain/types';
+import { API_URL, webFetch } from '../app/services';
+import { ApiError, apiAggregateSource } from '../sync/apiAggregateSource';
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => `2026-${String(i + 1).padStart(2, '0')}`);
 
@@ -38,8 +40,15 @@ function Bars({ rows, threshold }: { rows: { key: string; label: ReactNode; coun
 }
 
 export function Dashboard() {
-  const { uiLang: L, online } = useApp();
-  const source = useMemo(() => fixtureSource({ failWhenOffline: true, latencyMs: 250 }), []);
+  const { uiLang: L, online, staff, staffState } = useApp();
+  // The school API when signed in (it decides which schools this person may see); practice data otherwise.
+  const live = !!(API_URL && staff && staffState.status === 'signed_in');
+  const source = useMemo(
+    () => (live && API_URL && staff ? apiAggregateSource({ apiUrl: API_URL, getToken: staff.getToken, fetch: webFetch }) : fixtureSource({ failWhenOffline: true, latencyMs: 250 })),
+    [live, staff],
+  );
+  const [needsSignIn, setNeedsSignIn] = useState(false);
+  const cacheScope = live && staff ? `school:${staff.teacherId}` : 'practice';
   const [q, setQ] = useState<AggregateQuery>({ fromMonth: '2026-01', toMonth: '2026-11' });
   const [state, setState] = useState<{ data?: AggregateResponse; cached?: boolean; loading: boolean; error?: string }>({ loading: true });
 
@@ -48,18 +57,19 @@ export function Dashboard() {
     setState((s) => ({ ...s, loading: true, error: undefined }));
     source.query(q).then(
       (data) => {
-        writeCache(q, data);
+        writeCache(q, data, cacheScope);
         if (live) setState({ data, loading: false });
       },
       (e: Error) => {
-        const cached = readCache(q);
+        if (e instanceof ApiError && e.status === 401) setNeedsSignIn(true);
+        const cached = readCache(q, cacheScope);
         if (live) setState({ data: cached ?? undefined, cached: !!cached, loading: false, error: e.message });
       },
     );
     return () => {
       live = false;
     };
-  }, [q, source, online]);
+  }, [q, source, online, cacheScope]);
 
   const set = (patch: Partial<AggregateQuery>) => setQ({ ...q, ...patch });
   const d = state.data;
@@ -68,7 +78,8 @@ export function Dashboard() {
   return (
     <div className="stack">
       <h1>{t(L, 'dash.title')}</h1>
-      <Notice kind="warn">{t(L, 'dash.synthetic')}</Notice>
+      {!live && <Notice kind="warn">{t(L, 'dash.synthetic')}</Notice>}
+      {API_URL && (!live || needsSignIn) && <Notice><a href="#/school">{t(L, 'dash.signIn')}</a></Notice>}
 
       <section className="card filters">
         <label>

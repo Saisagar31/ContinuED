@@ -5,6 +5,7 @@ import { ErrorBox, Notice, fmtDate } from '../app/ui';
 import { t, type MsgKey } from '../content/i18n';
 import { decodeCapsule, type DecodeResult } from '../transfer/capsule';
 import { deviceTrustStore } from '../transfer/deviceTrust';
+import { record, transferReceivedEvent } from '../app/services';
 
 type Mode = 'scan' | 'upload' | 'paste';
 
@@ -18,7 +19,7 @@ const MODE_LABEL: Record<Mode, MsgKey> = { scan: 'receive.scan', upload: 'receiv
 
 export function Receive() {
   const ws = useWs();
-  const { uiLang: L } = useApp();
+  const { uiLang: L, staff } = useApp();
   const [mode, setMode] = useState<Mode>('scan');
   const [failure, setFailure] = useState<Extract<DecodeResult, { ok: false }> | null>(null);
   const received = useAsync(() => ws.transfers(), [ws.teacherId]);
@@ -29,9 +30,12 @@ export function Receive() {
       const r = await decodeCapsule(text, deviceTrustStore());
       if (!r.ok) return setFailure(r);
       await ws.saveTransfer({ tid: r.envelope.tid, code: r.code, trust: r.trust });
+      // Destination language = the receiving teacher's interface language (the corridor end on the dashboard).
+      const e = r.envelope;
+      void record(transferReceivedEvent(e.tid, ws.teacherId, e.lp, e.ol, L, e.cv, e.s), staff);
       go(`/plan/${r.envelope.tid}`);
     },
-    [ws],
+    [ws, L, staff],
   );
 
   return (
