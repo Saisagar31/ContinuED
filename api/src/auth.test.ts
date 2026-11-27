@@ -7,7 +7,7 @@ const POOL = 'ap-south-1_TestPool1';
 const CLIENT = 'testclient123';
 const ISS = `https://cognito-idp.ap-south-1.amazonaws.com/${POOL}`;
 
-const b64u = (s: string | Buffer) => Buffer.from(s).toString('base64url');
+const b64u = (s: string | Buffer) => (typeof s === 'string' ? Buffer.from(s) : s).toString('base64url');
 
 function makeKey(kid: string) {
   const { privateKey, publicKey } = generateKeyPairSync('rsa', { modulusLength: 2048 });
