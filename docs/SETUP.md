@@ -17,6 +17,14 @@ npm ci                 # exact versions from package-lock.json
 | `npm run typecheck` | TypeScript checks for the app (`tsconfig.json`) and for Node code (`tsconfig.node.json`) |
 | `npm run build` | Production bundle in `dist/`, with the offline app shell |
 | `npm run ci` | Typecheck + test + build, the same as GitHub CI |
+| `npm run android:sync` | Build the web app and copy it into the Android project. |
+| `npm run android:open` | Open the Android project in Android Studio. |
+
+## Android app
+
+Install Android Studio and its Android SDK, then run `npm ci` and `npm run android:sync` from the repository root. Run `npm run android:open` and select a phone or emulator in Android Studio. Use **Run** to install the debug app. For a debug APK, run `./gradlew.bat assembleDebug` inside `android/`; the file is written to `android/app/build/outputs/apk/debug/`.
+
+After changing the web app, run `npm run android:sync` again before building or running it in Android Studio. The app's local learner data is stored on the device. The QR scanner requests camera permission when used. Online school features require a reachable HTTPS `VITE_API_URL` and valid Cognito settings at build time; `localhost` points to the phone, not your PC.
 
 ### Dev sign-in for the local API
 The local API uses fake dev sign-in. Send `Authorization: Bearer dev:<schoolId>:<district>:<role>`, where role is `teacher`, `school_lead` or `district_lead`. The district can be left empty, for example `dev:SCH-A::teacher`.

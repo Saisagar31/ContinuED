@@ -2,8 +2,11 @@
 // Strategy: network-first for navigations (fall back to cached shell offline),
 // cache-first for same-origin static assets. Content/audio packs are NOT handled
 // here — task 10 owns verified pack activation.
-const CACHE = 'continued-shell-v1';
-const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icon.svg'];
+const CACHE = 'continued-shell-v2';
+const SHELL = [
+  '/', '/index.html', '/manifest.webmanifest', '/icon.svg',
+  '/illustrations/welcome-duo.png', '/illustrations/reading-circle-duo.png', '/illustrations/learning-passport-duo.png',
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

@@ -40,7 +40,10 @@ export function Receive() {
 
   return (
     <div className="stack">
-      <h1>{t(L, 'receive.title')}</h1>
+      <header className="classroom-header transfer-header">
+        <h1>{t(L, 'receive.title')}</h1>
+        <div className="art-stage" aria-hidden="true"><img className="classroom-art plane-art" src="/illustrations/learning-passport-duo.png" width="448" height="214" alt="" /></div>
+      </header>
       <div className="seg tabs" role="tablist">
         {(['scan', 'upload', 'paste'] as Mode[]).map((m) => (
           <button key={m} role="tab" aria-selected={mode === m} className={mode === m ? 'on' : ''} onClick={() => { setMode(m); setFailure(null); }}>

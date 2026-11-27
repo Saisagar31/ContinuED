@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useApp, useAsync } from '../app/context';
 import { ErrorBox, Notice } from '../app/ui';
 import { LangSelect } from '../app/LangSelect';
+import { ThemeToggle } from '../app/ThemeToggle';
 import { t } from '../content/i18n';
 import { createTeacher, listTeachers, signIn } from '../store/db';
 
@@ -55,9 +56,12 @@ export function SignIn() {
     <div className="signin">
       <div className="row between">
         <h1>ContinuED</h1>
-        <LangSelect />
+        <div className="row"><LangSelect /><ThemeToggle /></div>
       </div>
-      <p className="muted">{t(L, 'signin.tagline')}</p>
+      <div className="signin-intro">
+        <p>{t(L, 'signin.tagline')}</p>
+        <div className="art-stage welcome-stage" aria-hidden="true"><img className="classroom-art welcome-art" src="/illustrations/welcome-duo.png" width="672" height="448" alt="" /></div>
+      </div>
 
       {showCreate ? (
         <form onSubmit={doCreate} className="card stack">

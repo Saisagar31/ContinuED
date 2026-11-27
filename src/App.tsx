@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { go, useApp, useRoute } from './app/context';
 import { LangSelect } from './app/LangSelect';
+import { ThemeToggle } from './app/ThemeToggle';
 import { LANG_NAMES, packState, t, type MsgKey } from './content/i18n';
 import { SignIn } from './screens/SignIn';
 import { Roster } from './screens/Roster';
@@ -62,6 +63,7 @@ export function App() {
       <header className="topbar no-print">
         <a className="brand" href="#/">ContinuED</a>
         <LangSelect />
+        <ThemeToggle />
         <a className="link" href="#/audio">{t(uiLang, 'nav.audio')}</a>
         {API_URL && <a className="link" href="#/school">{t(uiLang, 'nav.school')}{staffState.status === 'signed_in' ? ' ✓' : ''}</a>}
         <button className="link" onClick={() => { setWs(null); go('/'); }} aria-label={`${t(uiLang, 'app.switch')}: ${ws.displayName}`}>
