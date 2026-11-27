@@ -1,0 +1,36 @@
+.hero-cluster-wrap { width: 100%; max-width: 520px; aspect-ratio: 1; contain: layout paint; }
+.hero-cluster-wrap svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.parallax { transform-box: fill-box; transform-origin: center; }
+.depth-6 { transform: translate(var(--px-6, 0px), var(--py-6, 0px)); }
+.depth-8 { transform: translate(var(--px-8, 0px), var(--py-8, 0px)); }
+.depth-12 { transform: translate(var(--px-12, 0px), var(--py-12, 0px)); }
+.depth-16 { transform: translate(var(--px-16, 0px), var(--py-16, 0px)); }
+.depth-24 { transform: translate(var(--px-24, 0px), var(--py-24, 0px)); }
+.drop-in { transform-box: fill-box; transform-origin: center; animation: hero-drop 700ms cubic-bezier(.34,1.56,.64,1) var(--stagger) both; }
+.float { transform-box: fill-box; transform-origin: center; animation: hero-float var(--dur) ease-in-out var(--delay) infinite; }
+.hero-interactive { cursor: pointer; outline: none; }
+.hero-interactive:focus-visible { filter: drop-shadow(0 0 3px var(--sky)); }
+.flame { transform-box: fill-box; transform-origin: 50% 90%; animation: flame-sway 2.2s ease-in-out infinite; }
+.blink { transform-box: fill-box; transform-origin: center; animation: hero-blink 5s ease-in-out infinite; }
+.wave { transform-box: fill-box; transform-origin: 50% 80%; animation: hero-wave 1.2s ease-in-out infinite; }
+.boop { animation: hero-boop 350ms cubic-bezier(.34,1.56,.64,1) both !important; }
+.stamp { animation: hero-stamp 600ms cubic-bezier(.34,1.56,.64,1) both !important; }
+.stamp-ring, .boop-confetti { opacity: 0; pointer-events: none; }
+.stamp .stamp-ring { animation: ring-pulse 600ms ease-out both; }
+.boop .boop-confetti { animation: confetti-pop 600ms ease-out both; }
+@keyframes hero-drop { from { opacity: 0; transform: translateY(-40px) scale(.6) rotate(25deg); } to { opacity: 1; transform: none; } }
+@keyframes hero-float { 0%,100% { transform: translate3d(0,0,0) rotate(var(--rot)); } 50% { transform: translate3d(var(--dx),var(--dy),0) rotate(calc(var(--rot) + var(--drot))); } }
+@keyframes hero-boop { 0%,100% { transform: rotate(var(--rot)) scale(1); } 45% { transform: rotate(calc(var(--rot) + 6deg)) scale(1.12); } }
+@keyframes hero-stamp { 0%,100% { transform: rotate(var(--rot)); } 50% { transform: rotate(calc(var(--rot) + 12deg)) scale(1.08); } }
+@keyframes ring-pulse { 0% { opacity: .9; transform: scale(.6); } 100% { opacity: 0; transform: scale(1.6); } }
+@keyframes confetti-pop { 0% { opacity: 1; transform: scale(.5); } 100% { opacity: 0; transform: scale(1.5); } }
+@keyframes flame-sway { 0%,100% { transform: rotate(-4deg) scale(1); } 50% { transform: rotate(4deg) scale(1.04); } }
+@keyframes hero-blink { 0%,92%,96%,100% { transform: scaleY(1); } 94% { transform: scaleY(.1); } }
+@keyframes hero-wave { 0%,100% { transform: rotate(-15deg); } 50% { transform: rotate(20deg); } }
+.hero-cluster-wrap svg[data-paused='true'] *, .hero-cluster-wrap svg[data-paused='true'] { animation-play-state: paused !important; }
+@media (max-width: 639px) { .hero-cluster-wrap { max-width: 280px; margin-inline: auto; } .float { animation-name: hero-float-mobile; } }
+@keyframes hero-float-mobile { 0%,100% { transform: rotate(var(--rot)); } 50% { transform: translate3d(3px,-6px,0) rotate(calc(var(--rot) + 3deg)); } }
+@media (prefers-reduced-motion: reduce) {
+  .hero-cluster-wrap *, .hero-cluster-wrap svg { animation: none !important; transition: none !important; }
+  .float { transform: rotate(var(--rot)); }
+}

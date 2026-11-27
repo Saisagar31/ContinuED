@@ -3,6 +3,9 @@ import { go, useApp, useAsync, useWs } from '../app/context';
 import { Empty, ErrorBox, Loading, fmtDate } from '../app/ui';
 import { t } from '../content/i18n';
 import { AGE_BANDS, type AgeBand } from '../domain/types';
+import { HeroCluster } from '../illustrations/HeroCluster';
+import { ChunkyButton } from '../ui/ChunkyButton';
+import { LangStrip } from '../ui/LangStrip';
 
 export function Roster() {
   const ws = useWs();
@@ -23,13 +26,18 @@ export function Roster() {
 
   return (
     <div className="stack roster-screen">
-      <header className="classroom-header">
-        <div>
-          <h1>{t(L, 'roster.title')}</h1>
-          <button className="primary" onClick={() => setAdding(true)}>{t(L, 'roster.add')}</button>
+      <section className="passport-hero" aria-labelledby="passport-hero-title">
+        <HeroCluster />
+        <div className="passport-hero-copy">
+          <p className="passport-eyebrow">{t(L, 'roster.title')}</p>
+          <h1 id="passport-hero-title">{t(L, 'signin.tagline')}</h1>
+          <div className="passport-hero-actions">
+            <ChunkyButton onClick={() => setAdding(true)}>{t(L, 'roster.add')}</ChunkyButton>
+            <ChunkyButton ghost onClick={() => go('/receive')}>{t(L, 'nav.receive')}</ChunkyButton>
+          </div>
         </div>
-        <div className="art-stage" aria-hidden="true"><img className="classroom-art" src="/illustrations/reading-circle-duo.png" width="544" height="266" alt="" /></div>
-      </header>
+      </section>
+      <LangStrip />
 
       {adding && <AddLearner onDone={(id) => { setAdding(false); if (id) go(`/learner/${id}`); else data.reload(); }} />}
 

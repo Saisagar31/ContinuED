@@ -19,6 +19,16 @@
   --ins-bg: #eceef1;
   --focus: var(--brand);
   --radius: 16px;
+  --primary: #ff9f1c;
+  --primary-d: #d97f00;
+  --teal: #19b5a5;
+  --teal-d: #0e8478;
+  --sky: #3aa8ff;
+  --pink: #ff7bac;
+  --violet: #8f6bff;
+  --leaf: #58cc02;
+  --coin: #ffd23f;
+  --coin-d: #e8a800;
   color-scheme: light;
 }
 :root[data-theme='dark'] {
@@ -413,6 +423,33 @@ input, select, textarea { border-radius: 12px; min-height: 50px; }
 .classroom-header .art-stage img { width: 100%; max-width: none; }
 .transfer-header .art-stage { max-width: 205px; }
 .activity { border-color: var(--accent); }
+.main:has(.roster-screen) { max-width: 1160px; }
+.roster-screen { --bg: #fffdf7; --ink: #2b2a4c; --ink-soft: #6b6a8a; --line: #e8e3d6; }
+.passport-hero { display: grid; grid-template-columns: minmax(0, 55%) minmax(0, 45%); align-items: center; min-height: 490px; padding: 20px 32px; background: var(--bg); border-radius: 24px 24px 0 0; overflow: hidden; }
+.passport-hero-copy { max-width: 440px; justify-self: center; color: var(--ink); }
+.passport-eyebrow { color: var(--ink-soft); font-size: .85rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.passport-hero h1 { font: 800 clamp(2rem, 3.5vw, 3.5rem)/1.12 system-ui, 'Noto Sans Devanagari', 'Noto Sans Kannada', sans-serif; letter-spacing: -.03em; text-wrap: balance; }
+.passport-hero-actions { display: grid; gap: 16px; margin-top: 32px; }
+.btn-chunky { width: 100%; min-height: 54px; padding: 16px 24px; border: 0; border-radius: 16px; color: #2b2a4c; background: var(--primary); box-shadow: 0 5px 0 var(--primary-d); font: 800 .95rem/1.2 system-ui, sans-serif; letter-spacing: .05em; text-transform: uppercase; transition: transform .08s ease; }
+.passport-hero button.btn-chunky:hover { filter: brightness(1.05); border: 0; box-shadow: 0 5px 0 var(--primary-d); }
+.btn-chunky:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--primary-d); }
+.btn-chunky:focus-visible { outline: 3px solid var(--sky); outline-offset: 3px; }
+.btn-chunky--ghost { background: #fff; color: #2b2a4c; border: 2px solid var(--line); box-shadow: 0 5px 0 var(--line); }
+.passport-hero button.btn-chunky--ghost:hover { border: 2px solid var(--line); box-shadow: 0 5px 0 var(--line); }
+.btn-chunky--ghost:active { box-shadow: 0 1px 0 var(--line); }
+.lang-strip { display: flex; align-items: center; min-height: 72px; background: var(--bg); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.strip-scroll { display: flex; align-items: center; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity; scroll-behavior: smooth; }
+.strip-scroll::-webkit-scrollbar { display: none; }
+.strip-language-tabs { position: relative; display: flex; align-items: center; }
+.strip-chip { position: relative; display: inline-flex; align-items: center; flex: none; gap: 9px; min-height: 56px; padding: 6px 14px; border: 0; border-radius: 0; background: transparent; color: var(--ink-soft); font-size: .77rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; scroll-snap-align: start; }
+.strip-chip[aria-selected='true'] { color: var(--ink); }
+.strip-indicator { position: absolute; left: 0; bottom: 0; width: 1px; height: 3px; background: var(--primary); transform-origin: left center; transition: transform .25s ease, opacity .25s ease; pointer-events: none; }
+.strip-tile { display: inline-grid; place-items: center; width: 28px; height: 24px; border-radius: 5px; background: var(--teal); color: #fff; font-size: .95rem; }
+.strip-skill .strip-tile { background: var(--sky); }
+.strip-arrow { flex: none; min-width: 44px; min-height: 50px; padding: 0; border: 0; background: transparent; color: var(--ink); font-size: 1.8rem; }
+@media (max-width: 1023px) { .passport-hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 400px; padding: 12px 20px; } }
+@media (max-width: 639px) { .passport-hero { grid-template-columns: 1fr; gap: 0; padding: 12px 16px 28px; } .passport-hero-copy { width: 100%; text-align: center; } .passport-hero h1 { font-size: 2rem; } .passport-hero-actions { margin-top: 22px; } }
+@media (prefers-reduced-motion: reduce) { .btn-chunky, .strip-indicator { transition: none; } .strip-scroll { scroll-behavior: auto; } }
 @media (max-width: 799px) { .signin, .shell { background: var(--bg); } .signin > form { box-shadow: none; } }
 @media (max-width: 480px) { .groups-header .art-stage { width: 48%; } }
 @media (prefers-reduced-motion: no-preference) {
